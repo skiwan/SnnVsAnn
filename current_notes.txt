@@ -1,0 +1,10 @@
+
+extract trials and save class labels
+
+
+
+rename files properly
+restrucutre
+add proper readme
+
+find out why values are so different in dimension (from asci is 0.00001... from gdf is 10.00 ...)
