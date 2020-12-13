@@ -2,11 +2,16 @@ import mne
 import pandas as pd
 import numpy as np
 from bandpass_filter import butter_bandpass_filter
+import os, sys
+
 
 file_path = 'A02T.gdf'
+current_wd = os.getcwd()
+base_path = os.path.join(current_wd, 'Preprocessed\BCI4_2a_A02T_car')
 frequency = 250
 low_pass = 7
 high_pass = 30
+save_path = f'{base_path}_{low_pass}_{high_pass}.npy'
 
 
 def get_single_trial(trigger, all_lines, frequency):
@@ -16,7 +21,20 @@ def get_single_trial(trigger, all_lines, frequency):
 	current_trial = np.asarray(current_trial)
 	return current_trial
 
+def get_CAR_eeg(filtered_eeg):
+	total_sum = 0
+	total_count = 0
+	for trial in filtered_eeg:
+		for row in trial:
+			total_sum += np.nansum(row)
+			total_count += len(row)
+	average = total_sum / total_count
+	car_eeg = filtered_eeg - average
+	return car_eeg
 
+def save_eeg_to_npy(eeg_data, file_path_name):
+	#with open (file_path_name, 'w+') as eeg_save_file:
+	np.save(file_path_name, eeg_data)
 
 
 raw_gdf = mne.io.read_raw_gdf(file_path)
@@ -54,5 +72,9 @@ for start_idx in trial_starts:
 
 eeg_raw = np.asarray(single_trials)
 eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
-print(raw_gdf.info)
-print(raw_gdf.info.ch_names)
+car_eeg = get_CAR_eeg(eeg_filtered)
+save_eeg_to_npy(car_eeg, save_path)
+with open (f'{base_path}_labels.txt', 'w+') as label_file:
+	for label in trial_labels:
+		true_label = label - 6
+		label_file.write(f'{true_label}\n')

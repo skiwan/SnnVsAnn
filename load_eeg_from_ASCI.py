@@ -61,8 +61,7 @@ def get_true_labels(true_label_path):
 		labels.append(int(line))
 	return labels
 
-def save_eeg_to_asci(eeg_data, file_path_name):
-	#with open (file_path_name, 'w+') as eeg_save_file:
+def save_eeg_to_npy(eeg_data, file_path_name):
 	np.save(file_path_name, eeg_data)
 
 
@@ -129,4 +128,4 @@ for f_config in files:
 		save_path = f'{f_config[2]}_{low_pass}_{high_pass}.npy'
 		eeg_filtered = get_filtered_eeg(raw_file,trigger_path, low_pass, high_pass, frequency)
 		car_eeg = get_CAR_eeg(eeg_filtered)
-		save_eeg_to_asci(car_eeg, save_path)
+		save_eeg_to_npy(car_eeg, save_path)
