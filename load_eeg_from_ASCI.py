@@ -84,13 +84,13 @@ save_eeg_to_asci(car_eeg, save_path)"""
 files = [
 	[os.path.join(current_wd, 'Datasets\BCICompetitionIII\Data\BCIIII_DataSetIIIa-Sub_1_k3b_ascii\k3b_s.txt')
 	,os.path.join(current_wd, 'Datasets\BCICompetitionIII\Data\BCIIII_DataSetIIIa-Sub_1_k3b_ascii\k3b_HDR_TRIG.txt')
-	,os.path.join(current_wd, 'Preprocessed\BCI3a_k3b_car')]
+	,os.path.join(current_wd, 'Preprocessed\BCI3_3a_k3b_car')]
 	,[os.path.join(current_wd, 'Datasets\BCICompetitionIII\Data\BCIIII_DataSetIIIa-Sub_2_k6b_ascii\k6b_s.txt')
 	,os.path.join(current_wd, 'Datasets\BCICompetitionIII\Data\BCIIII_DataSetIIIa-Sub_2_k6b_ascii\k6b_HDR_TRIG.txt')
-	,os.path.join(current_wd, 'Preprocessed\BCI3a_k6b_car')]
+	,os.path.join(current_wd, 'Preprocessed\BCI3_3a_k6b_car')]
 	,[os.path.join(current_wd, 'Datasets\BCICompetitionIII\Data\BCIIII_DataSetIIIa-Sub_3_l1b_ascii\l1b_s.txt')
 	,os.path.join(current_wd, 'Datasets\BCICompetitionIII\Data\BCIIII_DataSetIIIa-Sub_3_l1b_ascii\l1b_HDR_TRIG.txt')
-	,os.path.join(current_wd, 'Preprocessed\BCI3a_l1b_car')]
+	,os.path.join(current_wd, 'Preprocessed\BCI3_3a_l1b_car')]
 ]
 configs = [
 	[7, 30]
