@@ -1,5 +1,5 @@
-
-extract trials and save class labels
+get label files for BCI3 3a
+Get rid of Channels last 3 extra channels on BCI 4 2a
 
 
 
