@@ -36,7 +36,7 @@ def calculate_covariance_for_class(class_idx, class_indexes, data):
 			class_R = trial_R
 		else:
 			np.add(class_R, trial_R)
-	class_R = class_R / len(class_indexes[class_idx])
+	class_R = np.divide(class_R , len(class_indexes[class_idx]))
 	return class_R
 
 # EQ_3
@@ -51,6 +51,16 @@ def calculate_singular_value_decomposition(R):
 # EQ_4
 def calculate_covariance_transformation_matrix(R_lambda, R_U):
 	return fractional_matrix_power(R_lambda, -0.5).dot(np.transpose(R_U)).astype(np.float)
+
+# EQ_6
+def calculate_Gs(P, R, R_tilde):
+	G = P.dot(R).dot(np.transpose(P))
+	G_tilde = P.dot(R_tilde).dot(np.transpose(P))
+	return G, G_tilde
+
+# EQ_8
+def calculate_I(P,U,R,R_tilde):
+	return np.transpose(np.transpose(P).dot(U)).dot(R).dot(np.transpose(P).dot(U)) + np.transpose(np.transpose(P).dot(U)).dot(R_tilde).dot(np.transpose(P).dot(U))
 
 current_wd = os.getcwd()
 
@@ -73,15 +83,40 @@ R_1 = calculate_covariance_for_class(0, class_idxs, data)
 R_2 = calculate_covariance_for_class(1, class_idxs, data)
 R_3 = calculate_covariance_for_class(2, class_idxs, data)
 R_4 = calculate_covariance_for_class(3, class_idxs, data)
+R_X = R_1 + R_2 + R_3 + R_4
 
 
-R_1_U, R_1_lambda = calculate_singular_value_decomposition(R_1)
-P_1 = calculate_covariance_transformation_matrix(R_1_lambda, R_1_U)
+R_x_U, R_x_lambda = calculate_singular_value_decomposition(R_X)
+P = calculate_covariance_transformation_matrix(R_x_lambda, R_x_U)
 R_1_tilde = R_2 + R_3 + R_4
+R_2_tilde = R_1 + R_3 + R_4
+R_3_tilde = R_2 + R_1 + R_4
+R_4_tilde = R_2 + R_3 + R_1
 
-print(R_1_tilde.shape)
+G_1, G_1_tilde = calculate_Gs(P, R_1, R_1_tilde)
+G_2, G_2_tilde = calculate_Gs(P, R_2, R_2_tilde)
+G_3, G_3_tilde = calculate_Gs(P, R_3, R_3_tilde)
+G_4, G_4_tilde = calculate_Gs(P, R_4, R_4_tilde)
 
-G_1 = P_1.dot(R_1).dot(np.transpose(P_1))
-G_1_tilde = P_1.dot(R_1_tilde).dot(np.transpose(P_1))
+# PROBLEM ! G_1_U and G_1_tilde_U are not the same even thou
+# They are supposed to be
+G_1_U, G_1_lambda = calculate_singular_value_decomposition(G_1)
+G_1_tilde_U, G_1_tilde_lambda = calculate_singular_value_decomposition(G_1_tilde)
 
-print(G_1.shape, G_1_tilde.shape)
+G_2_U, G_2_lambda = calculate_singular_value_decomposition(G_2)
+G_2_tilde_U, G_2_tilde_lambda = calculate_singular_value_decomposition(G_2_tilde)
+
+G_3_U, G_3_lambda = calculate_singular_value_decomposition(G_3)
+G_3_tilde_U, G_3_tilde_lambda = calculate_singular_value_decomposition(G_3_tilde)
+
+G_4_U, G_4_lambda = calculate_singular_value_decomposition(G_4)
+G_4_tilde_U, G_4_tilde_lambda = calculate_singular_value_decomposition(G_4_tilde)
+
+# Neither nor are I ffs
+I = calculate_I(P,G_1_U,R_1,R_1_tilde)
+I_2 = G_1_lambda + G_1_tilde_lambda
+
+V_1 = np.transpose(G_1_U).dot(P)
+V_2 = np.transpose(G_2_U).dot(P)
+V_3 = np.transpose(G_3_U).dot(P)
+V_4 = np.transpose(G_4_U).dot(P)
