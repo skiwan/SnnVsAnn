@@ -124,6 +124,7 @@ for f_config in files:
 		single_trials = extract_single_trials(trial_starts, gdf_list, frequency)
 
 		eeg_raw = np.asarray(single_trials)
+		eeg_raw = np.swapaxes(eeg_raw, 1, 2)
 		eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
 		car_eeg = get_CAR_eeg(eeg_filtered)
 		save_eeg_to_npy(car_eeg, save_path)

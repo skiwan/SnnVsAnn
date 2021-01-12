@@ -39,6 +39,7 @@ def load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency):
 
 def get_filtered_eeg(raw_file_path, trigger_file_path, low_pass, high_pass, frequency):
 	eeg_raw = load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency)
+	eeg_raw = np.swapaxes(eeg_raw, 1, 2)
 	eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
 	return eeg_filtered
 
