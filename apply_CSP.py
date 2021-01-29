@@ -66,65 +66,95 @@ def calculate_I(P,U,R,R_tilde):
 
 current_wd = os.getcwd()
 
-low_pass = 7
-high_pass = 30
-file_root = 'BCI4_2a_A01T'
-base_path = os.path.join(current_wd, f'Preprocessed\{file_root}_car')
-label_file_path = f'{base_path}_labels.txt'
-data_file_path = f'{base_path}_{low_pass}_{high_pass}.npy'
+files = [
+'BCI4_2a_A01T'
+,'BCI4_2a_A02T'
+,'BCI4_2a_A03T'
+,'BCI4_2a_A04T'
+,'BCI4_2a_A05T'
+,'BCI4_2a_A06T'
+,'BCI4_2a_A07T'
+,'BCI4_2a_A08T'
+,'BCI4_2a_A09T'
+]
 
-labels = load_labels(label_file_path)
-data = np.load(data_file_path)
-trials = data.shape[0]
-time_steps = data.shape[1]
-channels = data.shape[2]
-class_idxs = extract_class_indexes(labels)
-class_count = len(class_idxs)
+configs = [
+	[7, 30]
+	,[7,14]
+	,[14,30]
+	,[7,12]
+	,[12,17]
+	,[17,22]
+	,[22,27]
+	,[27,32]
+	,[4,8]
+	,[8,12]
+	,[12,16]
+	,[16,20]
+	,[20,24]
+	,[24,28]
+	,[28,32]
+	,[32,36]
+	,[36,40]
+	,[9,14]
+	,[11,16]
+	,[13,18]
+	,[15,20]
+	,[19,24]
+	,[21,26]
+	,[23,28]
+	,[25,30]
+]
 
-R_1 = calculate_covariance_for_class(0, class_idxs, data)
-R_2 = calculate_covariance_for_class(1, class_idxs, data)
-R_3 = calculate_covariance_for_class(2, class_idxs, data)
-R_4 = calculate_covariance_for_class(3, class_idxs, data)
-R_X = R_1 + R_2 + R_3 + R_4
+for f in files:
+	for conf in configs:
+		low_pass = conf[0]
+		high_pass = conf[1]
+		file_root = f
+		base_path = os.path.join(current_wd, f'Preprocessed\{file_root}_car')
+		label_file_path = f'{base_path}_labels.txt'
+		data_file_path = f'{base_path}_{low_pass}_{high_pass}.npy'
+		save_file_base = f'Filtered\{file_root}_car_{low_pass}_{high_pass}'
 
-R_1_tilde = (R_2 + R_3 + R_4) / 3
-R_2_tilde = (R_1 + R_3 + R_4) / 3
-R_3_tilde = (R_2 + R_1 + R_4) / 3
-R_4_tilde = (R_2 + R_3 + R_1) / 3
+		labels = load_labels(label_file_path)
+		data = np.load(data_file_path)
+		trials = data.shape[0]
+		time_steps = data.shape[1]
+		channels = data.shape[2]
+		class_idxs = extract_class_indexes(labels)
+		class_count = len(class_idxs)
 
-R_x_U, R_x_lambda = calculate_singular_value_decomposition(R_1 + R_1_tilde)
-P = calculate_covariance_transformation_matrix(R_x_lambda, R_x_U)
+		R_s = []
+		for x in range(0, class_count):
+			R_s.append(calculate_covariance_for_class(x, class_idxs, data))
 
-G_1, G_1_tilde = calculate_Gs(P, R_1, R_1_tilde)
-G_2, G_2_tilde = calculate_Gs(P, R_2, R_2_tilde)
-G_3, G_3_tilde = calculate_Gs(P, R_3, R_3_tilde)
-G_4, G_4_tilde = calculate_Gs(P, R_4, R_4_tilde)
+		R_X = sum(R_s)
 
-# PROBLEM ! G_1_U and G_1_tilde_U are not the same even thou
-# They are supposed to be
-G_1_U, G_1_lambda = calculate_singular_value_decomposition(G_1)
-G_1_tilde_U, G_1_tilde_lambda = calculate_singular_value_decomposition(G_1_tilde)
+		R_s_tilde = []
+		for x in range(0, class_count):
+			R_s_tilde.append((R_X-R_s[x])/3)
 
+		R_x_U, R_x_lambda = calculate_singular_value_decomposition(R_s[0] + R_s_tilde[0])
+		P = calculate_covariance_transformation_matrix(R_x_lambda, R_x_U)
 
-G_2_U, G_2_lambda = calculate_singular_value_decomposition(G_2)
-G_2_tilde_U, G_2_tilde_lambda = calculate_singular_value_decomposition(G_2_tilde)
+		g_pairs = []
+		for x in range(0, class_count):
+			G, G_tilde = calculate_Gs(P, R_s[x], R_s_tilde[x])
+			g_pairs.append([G, G_tilde])
 
-G_3_U, G_3_lambda = calculate_singular_value_decomposition(G_3)
-G_3_tilde_U, G_3_tilde_lambda = calculate_singular_value_decomposition(G_3_tilde)
+		final_filters = []
+		for x in range(0, class_count):
+			G_U, G_lambda = calculate_singular_value_decomposition(g_pairs[x][0])
+			#G_tilde_U, G_tilde_lambda = calculate_singular_value_decomposition(G_1_tilde)
+			V = np.dot(np.transpose(G_U), P).astype(np.float32)
+			final_filters.append(np.concatenate((V[:4],V[-4:])))
 
-G_4_U, G_4_lambda = calculate_singular_value_decomposition(G_4)
-G_4_tilde_U, G_4_tilde_lambda = calculate_singular_value_decomposition(G_4_tilde)
-
-# Neither nor are I ffs
-I = calculate_I(P,G_1_U,R_1,R_1_tilde)
-I_2 = G_1_lambda + G_1_tilde_lambda
-
-
-V_1 = np.dot(np.transpose(G_1_U), P).astype(np.float32)
-V_2 = np.dot(np.transpose(G_2_U), P).astype(np.float32)
-V_3 = np.dot(np.transpose(G_3_U), P).astype(np.float32)
-V_4 = np.dot(np.transpose(G_4_U), P).astype(np.float32)
-
-print(V_1[:8].shape)
-t = np.dot(V_1[:8], data[class_idxs[0][0]])
-print(t.shape, data[class_idxs[0][0]].shape)
+		for x in range(0, class_count):
+			class_x_filtered = []
+			for idx in class_idxs[x]:
+				data_sample = data[idx]
+				filtered = np.dot(final_filters[x], data_sample)
+				class_x_filtered.append(filtered)
+			class_x_filtered = np.asarray(class_x_filtered)
+			#print(class_x_filtered.shape)
+			np.save(f'{save_file_base}_class{x+1}.npy', class_x_filtered)
