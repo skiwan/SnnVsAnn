@@ -70,12 +70,15 @@ files = [
 'BCI4_2a_A01T'
 ,'BCI4_2a_A02T'
 ,'BCI4_2a_A03T'
-,'BCI4_2a_A04T'
+#,'BCI4_2a_A04T' T04 is corrupted due to some technical issues during recording
 ,'BCI4_2a_A05T'
 ,'BCI4_2a_A06T'
 ,'BCI4_2a_A07T'
 ,'BCI4_2a_A08T'
 ,'BCI4_2a_A09T'
+,'BCI3_3a_k3b'
+,'BCI3_3a_k6b'
+,'BCI3_3a_l1b'
 ]
 
 configs = [

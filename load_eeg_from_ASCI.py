@@ -129,4 +129,5 @@ for f_config in files:
 		save_path = f'{f_config[2]}_{low_pass}_{high_pass}.npy'
 		eeg_filtered = get_filtered_eeg(raw_file,trigger_path, low_pass, high_pass, frequency)
 		car_eeg = get_CAR_eeg(eeg_filtered)
+		car_eeg = np.nan_to_num(car_eeg, neginf=0, posinf=0)
 		save_eeg_to_npy(car_eeg, save_path)
