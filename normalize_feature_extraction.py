@@ -56,18 +56,17 @@ def calculate_Fscores(positive_class, negative_class, whole_set):
 current_wd = os.getcwd()
 
 files = [
-'BCI4_2a_A01T'
-,'BCI4_2a_A02T'
-,'BCI4_2a_A03T'
-#,'BCI4_2a_A04T' T04 is corrupted due to some technical issues during recording
-,'BCI4_2a_A05T'
-,'BCI4_2a_A06T'
-,'BCI4_2a_A07T'
-,'BCI4_2a_A08T'
-,'BCI4_2a_A09T'
-,'BCI3_3a_k3b'
-,'BCI3_3a_k6b'
-,'BCI3_3a_l1b'
+ ['BCI4_2a_A01T', 'BCI4_2a_A01E']
+,['BCI4_2a_A02T', 'BCI4_2a_A02E']
+,['BCI4_2a_A03T', 'BCI4_2a_A03E']
+,['BCI4_2a_A05T', 'BCI4_2a_A05E']
+,['BCI4_2a_A06T', 'BCI4_2a_A06E']
+,['BCI4_2a_A07T', 'BCI4_2a_A07E']
+,['BCI4_2a_A08T', 'BCI4_2a_A08E']
+,['BCI4_2a_A09T', 'BCI4_2a_A09E']
+,['BCI3_3a_k3b', 'BCI3_3a_k3b']
+,['BCI3_3a_k6b', 'BCI3_3a_k6b']
+,['BCI3_3a_l1b', 'BCI3_3a_l1b']
 ]
 
 configs = [
@@ -86,36 +85,60 @@ classes = [
 
 ]
 
-for f in files:
+for f_e in files:
 	for conf in configs:
 		config_nr = len(conf)
-		file_root = f
+		file_root = f_e[0]
 		base_path = os.path.join(current_wd, f'Filtered\{file_root}_car')
 		label_file_path = f'Preprocessed\{file_root}_car_labels.txt'
 		save_file_base = f'Normalized_Extracted\{file_root}_car_{config_nr}'
 
+		ev_file_root = f_e[1]
+		ev_base_path = os.path.join(current_wd, f'Filtered\{file_root}_car')
+		ev_label_file_path = f'Preprocessed\{file_root}_car_labels.txt'
+		ev_save_file_base = f'Normalized_Extracted\{file_root}_car_{config_nr}'
+
+
+
 		labels = load_labels(label_file_path)
 		data_classes = []
+		
+		ev_labels = load_labels(label_file_path)
+		ev_data_classes = []
 
 		print(f'start for {file_root}_car_{config_nr}')
 
 		for cla in classes:
 			data = None
+			ev_data = None
 			for l_h in conf:
 				low = l_h[0]
 				high = l_h[1]
 				data_file_path = f'{base_path}_{low}_{high}_{cla}.npy'
+				ev_data_file_path = f'{ev_base_path}_{low}_{high}_{cla}.npy'
+				
 				if data is None:
 					data = np.load(data_file_path)
 				else:
 					data = np.concatenate((data, np.load(data_file_path)), axis=1)
+
+				if ev_data is None:
+					ev_data = np.load(ev_data_file_path)
+				else:
+					ev_data = np.concatenate((ev_data, np.load(ev_data_file_path)), axis=1)
 				# uniformly normalize
 			data_abs_max = max(abs(np.amax(data)),abs(np.amin(data)))
 			data = data / data_abs_max
 			data_classes.append(data)
+
+			ev_data_abs_max = max(abs(np.amax(ev_data)),abs(np.amin(ev_data)))
+			ev_data = ev_data / ev_data_abs_max
+			ev_data_classes.append(ev_data)
 				
 
 		whole_set = np.concatenate(data_classes, axis=0)
+		ev_whole_set = np.concatenate(ev_data_classes, axis=0)
+
 		class1_fscores = calculate_Fscores(data_classes[0], np.concatenate(data_classes[1:], axis=0), whole_set)
 
 		class2_neg_subset =  np.concatenate(data_classes[2:], axis=0)
@@ -141,33 +164,65 @@ for f in files:
 		class4_f_idx = [i for i in range(0,len(class4_fscores)) if class4_fscores[i] >= class4_fscore_avg]
 		
 		# save selected feature
+		#TODO SAVE EV
 
 		class1_f_data = []
+		ev_class1_f_data = []
 		for data in whole_set:
 			class1_f_data.append(np.asarray([data[i] for i in class1_f_idx]))
+		
+		for data in ev_whole_set:
+			ev_class1_f_data.append(np.asarray([data[i] for i in class1_f_idx]))
+		
 		class1_f_data = np.asarray(class1_f_data)
+		ev_class1_f_data = np.asarray(ev_class1_f_data)
 
 		class2_f_data = []
+		ev_class2_f_data = []
 		for data in whole_set:
 			class2_f_data.append(np.asarray([data[i] for i in class2_f_idx]))
+
+		for data in ev_whole_set:
+			ev_class2_f_data.append(np.asarray([data[i] for i in class2_f_idx]))
+		
 		class2_f_data = np.asarray(class2_f_data)
+		ev_class2_f_data = np.asarray(ev_class2_f_data)
 
 		class3_f_data = []
+		ev_class3_f_data = []
 		for data in whole_set:
 			class3_f_data.append(np.asarray([data[i] for i in class3_f_idx]))
+
+		for data in ev_whole_set:
+			ev_class3_f_data.append(np.asarray([data[i] for i in class3_f_idx]))
+
 		class3_f_data = np.asarray(class3_f_data)
+		ev_class3_f_data = np.asarray(ev_class3_f_data)
 
 
 		class4_f_data = []
+		ev_class4_f_data = []
+
 		for data in whole_set:
 			class4_f_data.append(np.asarray([data[i] for i in class4_f_idx]))
-		class4_f_data = np.asarray(class4_f_data)	
+
+		for data in ev_whole_set:
+			ev_class4_f_data.append(np.asarray([data[i] for i in class4_f_idx]))
+
+		class4_f_data = np.asarray(class4_f_data)
+		ev_class4_f_data = np.asarray(ev_class4_f_data)	
 
 		print(class1_f_data.shape, class2_f_data.shape, class3_f_data.shape, class4_f_data.shape)
 		np.save(f'{save_file_base}_class1.npy', class1_f_data)
 		np.save(f'{save_file_base}_class2.npy', class2_f_data)
 		np.save(f'{save_file_base}_class3.npy', class3_f_data)
 		np.save(f'{save_file_base}_class4.npy', class4_f_data)
+
+		print(ev_class1_f_data.shape, ev_class2_f_data.shape, ev_class3_f_data.shape, ev_class4_f_data.shape)
+		np.save(f'{ev_save_file_base}_class1.npy', ev_class1_f_data)
+		np.save(f'{ev_save_file_base}_class2.npy', ev_class2_f_data)
+		np.save(f'{ev_save_file_base}_class3.npy', ev_class3_f_data)
+		np.save(f'{ev_save_file_base}_class4.npy', ev_class4_f_data)
 
 
 			

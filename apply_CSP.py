@@ -67,18 +67,19 @@ def calculate_I(P,U,R,R_tilde):
 current_wd = os.getcwd()
 
 files = [
-'BCI4_2a_A01T'
-,'BCI4_2a_A02T'
-,'BCI4_2a_A03T'
+['BCI4_2a_A01T','BCI4_2a_A01E']
+,['BCI4_2a_A02T','BCI4_2a_A02E']
+,['BCI4_2a_A03T','BCI4_2a_A03E']
 #,'BCI4_2a_A04T' T04 is corrupted due to some technical issues during recording
-,'BCI4_2a_A05T'
-,'BCI4_2a_A06T'
-,'BCI4_2a_A07T'
-,'BCI4_2a_A08T'
-,'BCI4_2a_A09T'
-,'BCI3_3a_k3b'
-,'BCI3_3a_k6b'
-,'BCI3_3a_l1b'
+,['BCI4_2a_A05T','BCI4_2a_A05E']
+,['BCI4_2a_A06T','BCI4_2a_A06E']
+,['BCI4_2a_A07T','BCI4_2a_A07E']
+,['BCI4_2a_A08T','BCI4_2a_A08E']
+,['BCI4_2a_A09T','BCI4_2a_A09E']
+,['BCI3_3a_k3b' ,'BCI3_3a_k3b']
+,['BCI3_3a_k6b' ,'BCI3_3a_k6b']
+,['BCI3_3a_l1b' ,'BCI3_3a_l1b']
+
 ]
 
 configs = [
@@ -109,15 +110,22 @@ configs = [
 	,[25,30]
 ]
 
-for f in files:
+for f_e in files:
 	for conf in configs:
 		low_pass = conf[0]
 		high_pass = conf[1]
-		file_root = f
+		file_root = f_e[0]
 		base_path = os.path.join(current_wd, f'Preprocessed\{file_root}_car')
 		label_file_path = f'{base_path}_labels.txt'
 		data_file_path = f'{base_path}_{low_pass}_{high_pass}.npy'
 		save_file_base = f'Filtered\{file_root}_car_{low_pass}_{high_pass}'
+
+
+		ev_file_root = f_e[1]
+		ev_base_path = os.path.join(current_wd, f'Preprocessed\{ev_file_root}_car')
+		ev_label_file_path = f'{ev_base_path}_labels.txt'
+		ev_data_file_path = f'{ev_base_path}_{low_pass}_{high_pass}.npy'
+		ev_save_file_base = f'Filtered\{ev_file_root}_car_{low_pass}_{high_pass}'
 
 		labels = load_labels(label_file_path)
 		data = np.load(data_file_path)
@@ -126,6 +134,11 @@ for f in files:
 		channels = data.shape[2]
 		class_idxs = extract_class_indexes(labels)
 		class_count = len(class_idxs)
+
+		ev_labels = load_labels(ev_label_file_path)
+		ev_data = np.load(ev_data_file_path)
+		ev_class_idxs = extract_class_indexes(ev_labels)
+		ev_class_count = len(ev_class_idxs)
 
 		R_s = []
 		for x in range(0, class_count):
@@ -161,3 +174,13 @@ for f in files:
 			class_x_filtered = np.asarray(class_x_filtered)
 			#print(class_x_filtered.shape)
 			np.save(f'{save_file_base}_class{x+1}.npy', class_x_filtered)
+
+		for x in range(0, ev_class_count):
+			ev_class_x_filtered = []
+			for idx in ev_class_idxs[x]:
+				data_sample = ev_data[idx]
+				filtered = np.dot(final_filters[x], data_sample)
+				ev_class_x_filtered.append(filtered)
+			ev_class_x_filtered = np.asarray(ev_class_x_filtered)
+			#print(class_x_filtered.shape)
+			np.save(f'{ev_save_file_base}_class{x+1}.npy', ev_class_x_filtered)

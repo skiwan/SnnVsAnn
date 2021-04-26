@@ -101,6 +101,15 @@ files = [
 	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A07T.gdf'),'A07T']
 	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A08T.gdf'),'A08T']
 	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A09T.gdf'),'A09T']
+	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A01E.gdf'),'A01E']
+	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A02E.gdf'),'A02E']
+	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A03E.gdf'),'A03E']
+	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A04E.gdf'),'A04E']
+	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A05E.gdf'),'A05E']
+	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A06E.gdf'),'A06E']
+	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A07E.gdf'),'A07E']
+	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A08E.gdf'),'A08E']
+	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A09E.gdf'),'A09E']
 	
 ]
 
