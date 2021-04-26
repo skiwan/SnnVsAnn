@@ -16,6 +16,6 @@ class IZNeuron(object): # description of the formulars fo IZ given the paper "Si
 
     if self.v >= 30:
       self.v = self.c
-      self.u = self.u + d
+      self.u = self.u + self.d
       return True
     return False
