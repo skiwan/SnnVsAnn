@@ -17,28 +17,28 @@ def get_trigger_indexes(trigger_file_path):
 			trigger_idxs.append(int(l))
 	return trigger_idxs
 
-def get_single_trial(trigger, all_lines, frequency):
+def get_single_trial(trigger, all_lines, frequency, trial_duration):
 	current_trial = []
-	for i in range(trigger, trigger+int(frequency)):
+	for i in range(trigger, trigger+int(frequency*trial_duration)):
 		current_trial.append(convert_to_float_row(all_lines[i]))
 	current_trial = np.asarray(current_trial)
 	return current_trial
 
-def load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency):
+def load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency, trial_duration):
 	single_trials = []
 	trigger_idxs = get_trigger_indexes(trigger_file_path)
 	with open(raw_file_path, 'r') as eeg_data:
 		lines = eeg_data.readlines()
 	
 	for trigger in trigger_idxs:
-		trial = get_single_trial(trigger, lines, frequency)
+		trial = get_single_trial(trigger, lines, frequency, trial_duration)
 		single_trials.append(trial)
 
 	return np.asarray(single_trials)
 
 
-def get_filtered_eeg(raw_file_path, trigger_file_path, low_pass, high_pass, frequency):
-	eeg_raw = load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency)
+def get_filtered_eeg(raw_file_path, trigger_file_path, low_pass, high_pass, frequency, trial_duration):
+	eeg_raw = load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency, trial_duration)
 	eeg_raw = np.swapaxes(eeg_raw, 1, 2)
 	eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
 	return eeg_filtered
@@ -69,6 +69,7 @@ def save_eeg_to_npy(eeg_data, file_path_name):
 current_wd = os.getcwd()
 # inputs
 frequency = 250
+trial_duration = 7
 """low_pass = 7
 high_pass = 30
 test_file = os.path.join(current_wd, 'Datasets\BCICompetitionIII\Data\BCIIII_DataSetIIIa-Sub_1_k3b_ascii\k3b_s.txt')
@@ -127,7 +128,7 @@ for f_config in files:
 		raw_file = f_config[0]
 		trigger_path = f_config[1]
 		save_path = f'{f_config[2]}_{low_pass}_{high_pass}.npy'
-		eeg_filtered = get_filtered_eeg(raw_file,trigger_path, low_pass, high_pass, frequency)
+		eeg_filtered = get_filtered_eeg(raw_file,trigger_path, low_pass, high_pass, frequency, trial_duration)
 		car_eeg = get_CAR_eeg(eeg_filtered)
 		car_eeg = np.nan_to_num(car_eeg, neginf=0, posinf=0)
 		save_eeg_to_npy(car_eeg, save_path)

@@ -12,9 +12,9 @@ import os, sys
 6s trial 
 """
 
-def get_single_trial(trigger, all_lines, frequency):
+def get_single_trial(trigger, all_lines, frequency, trial_duration):
 	current_trial = []
-	for i in range(trigger, trigger+int(frequency)):
+	for i in range(trigger, trigger+int(frequency*trial_duration)):
 		current_trial.append(all_lines[i])
 	current_trial = np.asarray(current_trial)
 	return current_trial
@@ -46,10 +46,10 @@ def extract_labels_and_trial_starts(events):
 			trial_labels.append(sub_id)
 	return trial_starts, trial_labels
 
-def extract_single_trials(trial_starts, gdf_list, frequency):
+def extract_single_trials(trial_starts, gdf_list, frequency, trial_duration):
 	single_trials = []
 	for start_idx in trial_starts:
-		trial = get_single_trial(start_idx, gdf_list, frequency)
+		trial = get_single_trial(start_idx, gdf_list, frequency, trial_duration)
 		single_trials.append(trial)
 	return single_trials
 
@@ -62,6 +62,7 @@ def save_labels_to_file(base_path, trial_labels):
 
 current_wd = os.getcwd()
 frequency = 250
+trial_duration = 6
 
 configs = [
 	[7, 30]
@@ -130,7 +131,7 @@ for f_config in files:
 
 		events, events_ids = mne.events_from_annotations(raw_gdf)
 		trial_starts, trial_labels = extract_labels_and_trial_starts(events)
-		single_trials = extract_single_trials(trial_starts, gdf_list, frequency)
+		single_trials = extract_single_trials(trial_starts, gdf_list, frequency, trial_duration)
 
 		eeg_raw = np.asarray(single_trials)
 		eeg_raw = np.swapaxes(eeg_raw, 1, 2)
