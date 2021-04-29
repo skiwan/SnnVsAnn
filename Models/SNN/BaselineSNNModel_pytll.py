@@ -18,9 +18,18 @@ class TorchBaselineSNNModel(pl.LightningModule):
 		#print(spikes_c)
 		return spikes_c.index(max(spikes_c))
 
-	def training_step(self, x, y):
+	def training_step(self, batch, batch_idx):
 		return 0
 		# TODO implement propper training loss
+
+	def validation_step(self, batch, batch_idx):
+		# TODO implement propper validation step
+		return 0
+
+	def test_step(self, batch, batch_idx):
+		# TODO implement proppper test_step
+		return 0
+
 
 	def configure_optimizers(self):
 		optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
