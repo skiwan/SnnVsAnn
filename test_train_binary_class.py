@@ -1,4 +1,6 @@
 import torch
+from norse.torch.module import  IzhikevichCell
+from norse.torch.functional.izhikevich import IzhikevichSpikingBehaviour, IzhikevichState, IzhikevichParameters 
 
 def train_spike(model, data, labels, optimizer, epochs=200):
     losses = []
