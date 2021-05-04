@@ -1,7 +1,7 @@
 from norse.torch.module import  IzhikevichCell
 import torch
 
-class BinaryEEGClassififer(torch.nn.Module):
+class BinaryEEGClassifier(torch.nn.Module):
   def __init__(self, p):
     super().__init__()
     self.input_weights = torch.nn.Linear(4,2) 

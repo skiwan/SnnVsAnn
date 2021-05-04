@@ -1,6 +1,11 @@
+from Models.SNN.BinaryEEGClassifier import BinaryEEGClassifier
+
+
 import torch
 from norse.torch.module import  IzhikevichCell
 from norse.torch.functional.izhikevich import IzhikevichSpikingBehaviour, IzhikevichState, IzhikevichParameters 
+
+
 
 def train_spike(model, data, labels, optimizer, epochs=200):
     losses = []
@@ -22,7 +27,7 @@ if __name__ == '__main__':
   initial_state=IzhikevichState(v=torch.tensor(-70.0, requires_grad=True), u=torch.tensor(-70) * initial_params.b)
   behaviour = IzhikevichSpikingBehaviour(initial_params, initial_state)
 
-  bec = BinaryEEGClassififer(behaviour)
+  bec = BinaryEEGClassifier(behaviour)
   data = torch.ones(32,100,4)
   pattern = [0.0, 0.0, 0.0, 0.0, 1.0] * 2
   labels = torch.as_tensor(pattern * 10)
