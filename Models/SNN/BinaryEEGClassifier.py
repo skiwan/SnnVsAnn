@@ -2,12 +2,12 @@ from norse.torch.module import  IzhikevichCell
 import torch
 
 class BinaryEEGClassififer(torch.nn.Module):
-  def __init__(self, iz_params):
+  def __init__(self, p):
     super().__init__()
     self.input_weights = torch.nn.Linear(4,2) 
-    self.input_layer = IzhikevichCell(iz_params)
+    self.input_layer = IzhikevichCell(p)
     self.output_weights = torch.nn.Linear(2,1)
-    self.output_neuron = IzhikevichCell(iz_params)
+    self.output_neuron = IzhikevichCell(p)
 
   def forward(self, x, state):
     input_state, output_state = state
