@@ -1,4 +1,4 @@
-from .BinaryEEGClassififer import BinaryEEGClassififer
+from .BinaryEEGClassifier import BinaryEEGClassifier
 import torch
 
 
@@ -6,7 +6,7 @@ import torch
 class MulticlassEEGClassififer(torch.nn.Module):
   def __init__(self, iz_params):
     super().__init__()
-    self.binary_classifiers = [BinaryEEGClassififer(iz_params[i]) for i in range(4)]
+    self.binary_classifiers = torch.nn.ModuleList([BinaryEEGClassifier(iz_params[i]) for i in range(4)])
 
   def forward(self, xs, state):
     c1_state, c2_state, c3_state, c4_state  = state
@@ -24,4 +24,4 @@ class MulticlassEEGClassififer(torch.nn.Module):
 
     spikes_c = [sum(s) for s in spikes]
 
-    return spikes_c.index(max(spikes_c))
+    return torch.tensor(spikes_c.index(max(spikes_c)))
