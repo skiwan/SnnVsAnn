@@ -18,7 +18,7 @@ def train_spike(model, data, labels, optimizer, epochs=200):
           loss.backward(retain_graph=True)
           optimizer.step()
           losses.append(loss)
-          print(model.output_weights.weight, model.output_weights.weight.grad) # Debug purposes
+          #print(model.output_weights.weight, model.output_weights.weight.grad) # Debug purposes
     return losses
 
 
@@ -32,10 +32,8 @@ if __name__ == '__main__':
   pattern = [0.0, 0.0, 0.0, 0.0, 1.0] * 2
   labels = torch.as_tensor(pattern * 10)
   labels = torch.reshape(labels,(100,1))
-  print(labels.size())
 
   optimizer = torch.optim.Adam(bec.parameters(), lr=0.1)
 
-  import matplotlib.pyplot as plt
   m1_losses = train_spike(bec, data, labels, optimizer, epochs=1000)
-  plt.plot(m1_losses)
+  print(m1_losses)
