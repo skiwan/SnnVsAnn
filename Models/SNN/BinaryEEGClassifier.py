@@ -1,4 +1,4 @@
-from norse.torch.module import  IzhikevichCell
+from norse.torch.module import IzhikevichCell
 import torch
 
 class BinaryEEGClassifier(torch.nn.Module):
@@ -15,4 +15,4 @@ class BinaryEEGClassifier(torch.nn.Module):
     x, new_input_state = self.input_layer(x, input_state)
     x = self.output_weights(x)
     x, new_output_state = self.output_neuron(x, output_state)
-    return x, (new_input_state, output_state)
+    return x, (new_input_state, new_output_state)

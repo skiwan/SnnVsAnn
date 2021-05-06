@@ -2,22 +2,27 @@ from Models.SNN.BinaryEEGClassifier import BinaryEEGClassifier
 
 
 import torch
-from norse.torch.module import  IzhikevichCell
-from norse.torch.functional.izhikevich import IzhikevichSpikingBehaviour, IzhikevichState, IzhikevichParameters 
+from norse.torch.functional.izhikevich import IzhikevichSpikingBehaviour, IzhikevichState, IzhikevichParameters
 
 
 
 def train_spike(model, data, labels, optimizer, epochs=200):
     losses = []
+    outs = []
     for i in range(epochs):
-      state = (None, None) # Make sure to reset state before every new epoch
-      for x in data:
-          out, state = model(x,state)
-          loss = torch.nn.functional.mse_loss(out, labels)
+      print(f'epoch {i} out of {epochs}')
+      for xs in data:
+          state = (None, None) # Make sure to reset state before every new epoch
+          for x in xs:
+              out, state = model(x,state)
+              outs.append(out)
+          outs_t = torch.stack(outs)
+          loss = torch.nn.functional.mse_loss(outs_t, labels)
           optimizer.zero_grad()
           loss.backward(retain_graph=True)
           optimizer.step()
           losses.append(loss)
+          outs = []
           #print(model.output_weights.weight, model.output_weights.weight.grad) # Debug purposes
     return losses
 
@@ -28,12 +33,26 @@ if __name__ == '__main__':
   behaviour = IzhikevichSpikingBehaviour(initial_params, initial_state)
 
   bec = BinaryEEGClassifier(behaviour)
-  data = torch.ones(32,100,4)
+  data = torch.ones(32,100,4)*8
   pattern = [0.0, 0.0, 0.0, 0.0, 1.0] * 2
   labels = torch.as_tensor(pattern * 10)
   labels = torch.reshape(labels,(100,1))
 
-  optimizer = torch.optim.Adam(bec.parameters(), lr=0.1)
+  bec.input_weights.weight = torch.nn.Parameter(torch.ones_like(bec.input_weights.weight))
+  bec.output_weights.weight = torch.nn.Parameter(torch.ones_like(bec.output_weights.weight)*15)
 
-  m1_losses = train_spike(bec, data, labels, optimizer, epochs=1000)
+  #outs = []
+  #states = []
+  #state = (None,None)
+  #for x in data[0]:
+  #  out, state = bec(x, state)
+  #  outs.append(out)
+  #  states.append(state)
+
+
+
+  optimizer = torch.optim.Adam(bec.parameters(), lr=0.1)
+  torch.autograd.set_detect_anomaly(True)
+
+  m1_losses = train_spike(bec, data, labels, optimizer, epochs=5)
   print(m1_losses)
