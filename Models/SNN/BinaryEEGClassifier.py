@@ -9,10 +9,22 @@ class BinaryEEGClassifier(torch.nn.Module):
     self.output_weights = torch.nn.Linear(2,1)
     self.output_neuron = IzhikevichCell(p)
 
-  def forward(self, x, state):
+  def forward(self, xs, state=(None, None)): # xs has dim timesteps , channels
     input_state, output_state = state
-    x = self.input_weights(x)
-    x, new_input_state = self.input_layer(x, input_state)
-    x = self.output_weights(x)
-    x, new_output_state = self.output_neuron(x, output_state)
-    return x, (new_input_state, new_output_state)
+    # multiply whole input by weight matrix to scale input
+    xs = self.input_weights(xs)
+    # for each time step compute spike train of input layer
+    input_spikes = []
+    for x in xs:
+      spike, input_state = self.input_layer(x, input_state)
+      input_spikes.append(spike)
+    input_spikes = torch.stack(input_spikes)
+    # multiply whole spike train by weight matrix to scale to new input current
+    xs = self.output_weights(input_spikes)
+    # for each time step compute spike train for output neuron
+    output_spikes = []
+    for x in xs:
+      spike, output_state = self.output_neuron(x, output_state)
+      output_spikes.append(spike)
+    output_spikes = torch.stack(output_spikes)
+    return output_spikes, (input_state, output_state)
