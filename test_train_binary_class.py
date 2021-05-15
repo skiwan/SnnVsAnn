@@ -13,17 +13,14 @@ def train_spike(model, data, labels, optimizer, epochs=200):
       print(f'epoch {i} out of {epochs}')
       for xs in data:
           state = (None, None) # Make sure to reset state before every new epoch
-          for x in xs:
-              out, state = model(x,state)
-              outs.append(out)
-          outs_t = torch.stack(outs)
-          loss = torch.nn.functional.mse_loss(outs_t, labels)
+          out, state = model(xs,state)
+          loss = torch.nn.functional.mse_loss(out, labels)
           optimizer.zero_grad()
           loss.backward(retain_graph=True)
           optimizer.step()
           losses.append(loss)
-          outs = []
           #print(model.output_weights.weight, model.output_weights.weight.grad) # Debug purposes
+      print(min(losses))
     return losses
 
 
@@ -32,7 +29,7 @@ if __name__ == '__main__':
   initial_state=IzhikevichState(v=torch.tensor(-65.0, requires_grad=True), u=torch.tensor(-65) * initial_params.b)
   behaviour = IzhikevichSpikingBehaviour(initial_params, initial_state)
 
-  bec = BinaryEEGClassifier(behaviour)
+  bec = BinaryEEGClassifier(4, behaviour)
   data = torch.ones(32,100,4)*105
   pattern = [0.0, 0.0, 0.0, 0.0, 1.0] * 2
   labels = torch.as_tensor(pattern * 10)
@@ -44,5 +41,6 @@ if __name__ == '__main__':
   optimizer = torch.optim.Adam(bec.parameters(), lr=0.1)
   torch.autograd.set_detect_anomaly(True)
 
-  m1_losses = train_spike(bec, data, labels, optimizer, epochs=2)
+  m1_losses = train_spike(bec, data, labels, optimizer, epochs=50)
   print(m1_losses)
+  print(min(m1_losses))
