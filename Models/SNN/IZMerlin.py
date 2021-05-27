@@ -10,7 +10,7 @@ from norse.torch.functional.izhikevich import (
 class CustomIzhikevichState(NamedTuple):
     v: torch.Tensor
     u: torch.Tensor
-    e: torch.Tensor
+    e: torch.Tensor # 2 dim -> basically one list of traces per neuron
 
 # Uses new State
 class CustomIzhikevichSpikingBehaviour(NamedTuple):
@@ -34,9 +34,17 @@ class CustomIzhikevichCell(SNNCell):
 
 
 
+# TODO Replace dummy implementation
+# Will be partial of state given previous step * previous eligibility trace + partial hidden state over weight
+# Only partial of hidden state over weight for t=1
+def compute_eligibility_trace(iz_state: CustomIzhikevichState):
+    if iz_state.e.numel() == 0:
+        new_e = torch.ones(iz_state.u.size()[0]) # TODO replace with partial hidden state over weight function of same dimension as number of neurons
+    else:
+        old_e = iz_state.e[:, -1:] # last eligibility trace
+        new_e = torch.add(old_e, torch.ones(iz_state.u.size()[0])) # Todo replace with correct eligibility trace function
+    return new_e
 
-
-# TODO needs to compute eligibility traces
 def custom_izhikevich_step(
     input_current: torch.Tensor,
     s: CustomIzhikevichState,
@@ -47,10 +55,15 @@ def custom_izhikevich_step(
         p.sq * s.v ** 2 + p.mn * s.v + p.bias - s.u + input_current
     )
     u_ = s.u + p.tau_inv * dt * p.a * (p.b * s.v - s.u)
+
+    # Todo Q:should this happen before or after membrane reset?
+    e_ = compute_eligibility_trace(s)
+    e_ = torch.column_stack((s.e, e_))
+
     z_ = eprop_fn(v_ - p.v_th, torch.as_tensor(p.alpha))
     v_ = (1 - z_) * v_ + z_ * p.c
     u_ = (1 - z_) * u_ + z_ * (u_ + p.d)
-    return z_, CustomIzhikevichState(v_, u_)
+    return z_, CustomIzhikevichState(v_, u_, e_)
 
 
 # TODO Needs to forward eligibility traces to backward
@@ -58,8 +71,8 @@ def custom_izhikevich_step(
 class CustomEProp(torch.autograd.Function):
     @staticmethod
     @torch.jit.ignore
-    def forward(ctx, input_tensor: torch.Tensor, alpha: float) -> torch.Tensor:
-        ctx.save_for_backward(input_tensor)
+    def forward(ctx, input_tensor: torch.Tensor, alpha: float, eligibility_trace: torch.Tensor) -> torch.Tensor:
+        ctx.save_for_backward((input_tensor, eligibility_trace)) # save trace for backward
         ctx.alpha = alpha
         return heaviside(input_tensor)
 
@@ -67,7 +80,7 @@ class CustomEProp(torch.autograd.Function):
     @staticmethod
     @torch.jit.ignore
     def backward(ctx, grad_output):
-        (inp,) = ctx.saved_tensors
+        (inp, e_traces) = ctx.saved_tensors #Todo Q: retrive eligibility traces (check if this is done correctly or if you need to unpack better)
         alpha = ctx.alpha
         grad_input = grad_output.clone()
         grad = grad_input / (alpha * torch.abs(inp) + 1.0).pow(
