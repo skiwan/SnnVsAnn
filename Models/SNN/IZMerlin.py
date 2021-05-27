@@ -60,33 +60,31 @@ def custom_izhikevich_step(
     e_ = compute_eligibility_trace(s)
     e_ = torch.column_stack((s.e, e_))
 
-    z_ = eprop_fn(v_ - p.v_th, torch.as_tensor(p.alpha))
+    z_ = eprop_fn(v_ - p.v_th, torch.as_tensor(p.alpha), e_)
     v_ = (1 - z_) * v_ + z_ * p.c
     u_ = (1 - z_) * u_ + z_ * (u_ + p.d)
     return z_, CustomIzhikevichState(v_, u_, e_)
 
-
-# TODO Needs to forward eligibility traces to backward
-# TODO 2 Needs to compute eligibility traces here and make them accesable without changing IZ state
+# TODO v2 Needs to compute eligibility traces here and make them accesable without changing IZ state
 class CustomEProp(torch.autograd.Function):
     @staticmethod
     @torch.jit.ignore
     def forward(ctx, input_tensor: torch.Tensor, alpha: float, eligibility_trace: torch.Tensor) -> torch.Tensor:
-        ctx.save_for_backward((input_tensor, eligibility_trace)) # save trace for backward
+        ctx.save_for_backward(input_tensor, eligibility_trace) # save trace for backward
         ctx.alpha = alpha
         return heaviside(input_tensor)
 
-# TODO Needs to change to eprop equation
     @staticmethod
     @torch.jit.ignore
     def backward(ctx, grad_output):
-        (inp, e_traces) = ctx.saved_tensors #Todo Q: retrive eligibility traces (check if this is done correctly or if you need to unpack better)
+        inp, e_traces = ctx.saved_tensors
         alpha = ctx.alpha
         grad_input = grad_output.clone()
         grad = grad_input / (alpha * torch.abs(inp) + 1.0).pow(
             2
-        )  # section 3.3.2 (beta -> alpha)
-        return grad, None
+        )  #pseudo derivative
+        grad = torch.mul(grad, e_traces)
+        return grad, None #TODO Q: Why return 2 vals here?
 
 
 @torch.jit.ignore
