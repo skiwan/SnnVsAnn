@@ -7,9 +7,9 @@ class BinaryEEGClassifierLIF(torch.nn.Module):
     super().__init__()
     self.model = SequentialState(
     torch.nn.Linear(100,200),
-    LIF(p=p),
+    Izhikevich(spiking_method=p),
     torch.nn.Linear(200,100),
-    LIF(p=p)
+    Izhikevich(spiking_method=p)
     )
 
   def forward(self, x):
