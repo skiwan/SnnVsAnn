@@ -29,7 +29,7 @@ class CustomIzhikevichCell(torch.nn.Module):
         self.dt = 0.001
         self.spiking_method = spiking_method
 
-    def forward(self, input_tensor: torch.Tensor, state: Optional[Any] = None):
+    def forward(self, input_tensor: torch.Tensor, state: CustomIzhikevichState = None):
         state = state if state is not None else self.state_fallback(input_tensor)
         return self.activation(input_tensor, state, self.p, self.dt)
 
@@ -38,8 +38,16 @@ class CustomIzhikevichCell(torch.nn.Module):
         state.v.requires_grad = True
         return state
 
-    def backward(self):
-        pass
+    def backward(self, state: CustomIzhikevichState, loss):
+        random_weight = 0.5
+        #TODO Q: Do I take first or last eligibility trace?
+        while state.e.numel() > 0:
+            trace = state.e[:, -1:]
+            grad = loss * trace * random_weight
+            state.e[:, :-1]
+        print('No eligibility traces left')
+        self.grad = grad
+        return grad
 
 def partial_hidden(iz_state: CustomIzhikevichState, p: IzhikevichParameters, dt: float): # autograd would solve this
     s = iz_state
@@ -51,7 +59,7 @@ def compute_eligibility_trace(iz_state: CustomIzhikevichState, p: IzhikevichPara
         new_e = partial_hidden(iz_state, p, dt)
     else:
         old_e = iz_state.e[:, -1:] # last eligibility trace
-        new_e = torch.add(old_e, partial_hidden(iz_state, p, dt))
+        new_e = torch.mul(old_e, partial_hidden(iz_state, p, dt))
     return new_e
 
 def custom_izhikevich_step(
@@ -74,14 +82,3 @@ def custom_izhikevich_step(
     u_ = (1 - z_) * u_ + z_ * (u_ + p.d)
     return z_, CustomIzhikevichState(v_, u_, e_)
 
-    @staticmethod
-    @torch.jit.ignore
-    def backward(ctx, grad_output):
-        inp, e_traces = ctx.saved_tensors
-        alpha = ctx.alpha
-        grad_input = grad_output.clone()
-        grad = grad_input / (alpha * torch.abs(inp) + 1.0).pow(
-            2
-        )  #pseudo derivative
-        grad = torch.mul(grad, e_traces)
-        return grad, None #TODO Q: Why return 2 vals here?
