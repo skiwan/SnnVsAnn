@@ -7,10 +7,10 @@ from norse.torch.functional.izhikevich import (
     IzhikevichParameters,
 )
 
-# TODO Needs to hold eligibility traces
 class CustomIzhikevichState(NamedTuple):
     v: torch.Tensor
     u: torch.Tensor
+    e: torch.Tensor
 
 # Uses new State
 class CustomIzhikevichSpikingBehaviour(NamedTuple):
