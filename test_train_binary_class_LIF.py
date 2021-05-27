@@ -24,10 +24,10 @@ def train_spike(model, data, labels, optimizer, epochs=200):
 if __name__ == '__main__':
 
   bec_lif = BinaryEEGClassifierLIF(LIFParameters())
-  data = torch.ones(32,100,4)
+  data = torch.ones(20,32,100)
   pattern = [0.0, 0.0, 0.0, 0.0, 1.0] * 2
-  labels = torch.as_tensor(pattern * 10)
-  labels = torch.reshape(labels,(100,1))
+  labels = torch.as_tensor(pattern * 10).expand_as(data[0])
+  #labels = torch.reshape(labels,(100,1))
 
 
   optimizer = torch.optim.Adam(bec_lif.parameters(), lr=0.01)
