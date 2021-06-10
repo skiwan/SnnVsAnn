@@ -23,7 +23,7 @@ scales = np.arange(4,15,0.5)
 scales2 = np.arange(19,30,0.5)
 
 #trials x timesteps x channels
-whole_data = np.random.rand((256, 1000, 6))
+whole_data = np.random.rand(256, 1000, 6)
 
 cwt_trials = []
 for t in range(whole_data.shape[0]):
