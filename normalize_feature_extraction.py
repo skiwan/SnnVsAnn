@@ -94,16 +94,16 @@ for f_e in files:
 		save_file_base = f'Normalized_Extracted\{file_root}_car_{config_nr}'
 
 		ev_file_root = f_e[1]
-		ev_base_path = os.path.join(current_wd, f'Filtered\{file_root}_car')
-		ev_label_file_path = f'Preprocessed\{file_root}_car_labels.txt'
-		ev_save_file_base = f'Normalized_Extracted\{file_root}_car_{config_nr}'
+		ev_base_path = os.path.join(current_wd, f'Filtered\{ev_file_root}_car')
+		ev_label_file_path = f'Preprocessed\{ev_base_path}_car_labels.txt'
+		ev_save_file_base = f'Normalized_Extracted\{ev_base_path}_car_{config_nr}'
 
 
 
 		labels = load_labels(label_file_path)
 		data_classes = []
 		
-		ev_labels = load_labels(label_file_path)
+		ev_labels = load_labels(ev_label_file_path)
 		ev_data_classes = []
 
 		print(f'start for {file_root}_car_{config_nr}')
