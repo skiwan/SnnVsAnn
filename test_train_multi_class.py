@@ -23,7 +23,7 @@ def train_spike(model, data, labels, optimizer, epochs=200):
         optimizer.step()
         losses.append(epoch_loss.detach())
         print(f'min epoch loss {min(losses)} min average epoch loss {min(epoch_losses)}')
-        print(f''max(losses), max(epoch_losses))
+        print(f'max epoch loss {max(losses)} max average epoch loss {max(epoch_losses)}')
     return losses
 
 
