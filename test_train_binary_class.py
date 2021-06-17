@@ -36,7 +36,7 @@ if __name__ == '__main__':
     behaviour = IzhikevichSpikingBehaviour(initial_params, initial_state)
 
     bec = BinaryEEGClassifier(4, behaviour, gaining_factor).cuda()
-    data = (torch.ones(10, 100, 4)).cuda() # I have 4 channels of EEG as input, for 100 timesteps, and I want 32 samples
+    data = (torch.ones(10, 100, 4)).cuda() # I have 4 channels of EEG as input, for 100 timesteps, and I want 10 samples
     pattern = [0.0, 0.0, 0.0, 0.0, 1.0] * 2
 
     optimizer = torch.optim.Adam(bec.parameters(), lr=0.01)

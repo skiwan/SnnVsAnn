@@ -1,4 +1,4 @@
-from norse.torch import SequentialState, LIFCell
+from norse.torch import SequentialState
 from norse.torch.module import IzhikevichCell
 import torch
 
