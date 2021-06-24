@@ -7,17 +7,17 @@ import time
 
 def train_spike(model, data, labels, optimizer, epochs=200):
     losses = []
-    outs = []
     start = time.time()
     for i in range(epochs): # repeat this epoch amount of times
         print(f'epoch {i} out of {epochs}')
         epoch_losses = []
-        loss = torch.nn.NLLLoss()
         for i in range(len(data)): # take a single sample of shape classes x timesteps x channels (4,100,C)
             xs = data[i]
             label = labels[i]
             out, _ = model(xs)
-            loss_v = loss(out.unsqueeze(0), label)
+            activity_in_correct_class_loss = 0 if out[label] > 0 else 1
+            correct_class_loss = 0 if torch.argmax(out) == label else 2
+            loss_v = activity_in_correct_class_loss + correct_class_loss
             epoch_losses.append(loss_v)
         epoch_loss = torch.stack(epoch_losses).mean(0)
         optimizer.zero_grad()
