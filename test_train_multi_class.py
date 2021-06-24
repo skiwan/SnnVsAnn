@@ -17,7 +17,7 @@ def train_spike(model, data, labels, optimizer, epochs=200):
             out, _ = model(xs)
             activity_in_correct_class_loss = 0 if out[label] > 0 else 1
             correct_class_loss = 0 if torch.argmax(out) == label else 2
-            loss_v = activity_in_correct_class_loss + correct_class_loss
+            loss_v = torch.tensor((activity_in_correct_class_loss + correct_class_loss)/1.0, requires_grad=True)
             epoch_losses.append(loss_v)
         epoch_loss = torch.stack(epoch_losses).mean(0)
         optimizer.zero_grad()
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(mceeg.parameters(), lr=0.01)
     torch.autograd.set_detect_anomaly(True)
 
-    m1_losses = train_spike(mceeg, data, labels, optimizer, epochs=500)
+    m1_losses = train_spike(mceeg, data, labels, optimizer, epochs=100)
     print(m1_losses)
     print(min(m1_losses))
     torch.save(mceeg, 'multiclassmodelfakedata.pth')
