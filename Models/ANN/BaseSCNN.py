@@ -3,7 +3,7 @@ import torch
 
 
 class BaseSCNN(torch.nn.Module):
-  def __init__(self, channels, base_filters, classes, image_width=200, image_height=44, padding=0, stride=1):
+  def __init__(self, channels, base_filters, classes, image_height=44, padding=0, stride=1):
     super().__init__()
     self.model = SequentialState(
         torch.nn.Conv2d(channels, base_filters, kernel_size=(image_height, 1), padding=padding, stride=stride),
