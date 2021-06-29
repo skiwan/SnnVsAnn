@@ -17,7 +17,7 @@ def train_spike(model, data, labels, optimizer, epochs=200):
             out, _ = model(xs)
             activity_in_correct_class_loss = torch.tensor(0.0, requires_grad=True) if out[label] > 0 else torch.tensor(7.5, requires_grad=True)
             correct_class_loss = torch.tensor(0.0, requires_grad=True) if torch.argmax(out) == label else torch.tensor(2.0, requires_grad=True)
-            loss_v = torch.tensor((activity_in_correct_class_loss + correct_class_loss)/1.0, requires_grad=True)
+            loss_v = activity_in_correct_class_loss + correct_class_loss
             epoch_losses.append(loss_v)
         epoch_loss = torch.stack(epoch_losses).mean(0)
         optimizer.zero_grad()
