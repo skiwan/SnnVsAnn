@@ -15,8 +15,8 @@ def train_spike(model, data, labels, optimizer, epochs=200):
             xs = data[i]
             label = labels[i]
             out, _ = model(xs)
-            activity_in_correct_class_loss = 0 if out[label] > 0 else 1
-            correct_class_loss = 0 if torch.argmax(out) == label else 2
+            activity_in_correct_class_loss = torch.tensor(0, requires_grad=True) if out[label] > 0 else torch.tensor(7.5, requires_grad=True)
+            correct_class_loss = torch.tensor(0, requires_grad=True) if torch.argmax(out) == label else torch.tensor(2, requires_grad=True)
             loss_v = torch.tensor((activity_in_correct_class_loss + correct_class_loss)/1.0, requires_grad=True)
             epoch_losses.append(loss_v)
         epoch_loss = torch.stack(epoch_losses).mean(0)
@@ -35,7 +35,6 @@ if __name__ == '__main__':
     timesteps = 100
     all_channel_info = [4,3,5,4]
     samples = 40
-
 
     initial_params = IzhikevichParameters(a=0.02, b=0.2, c=-65, d=2)
     initial_state = IzhikevichState(v=torch.tensor(-65.0, requires_grad=True), u=torch.tensor(-65) * initial_params.b)
