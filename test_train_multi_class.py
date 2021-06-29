@@ -90,7 +90,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(mceeg.parameters(), lr=0.01)
     torch.autograd.set_detect_anomaly(True)
 
-    m1_losses = train_spike(mceeg, data, labels, optimizer, epochs=100)
+    m1_losses = train_spike(mceeg, data, labels, optimizer, epochs=500)
     print(m1_losses)
     print(min(m1_losses))
     torch.save(mceeg, 'multiclassmodelfakedata.pth')
