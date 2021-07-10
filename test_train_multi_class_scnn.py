@@ -97,6 +97,7 @@ if __name__ == '__main__':
         lines = labelfile.readlines()
         data_labels = [int(l.replace('\n','')) for l in lines]
     ev_labels = np.load(os.path.join(os.path.join(current_wd, os.path.join('Raw_Preprocessed', 'A01E_labels.npy'))))
+    ev_labels = [int(e) for e in ev_labels]
 
     print(dataset.shape)
 
