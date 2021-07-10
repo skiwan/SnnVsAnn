@@ -39,12 +39,14 @@ if __name__ == '__main__':
     dataset = np.load(os.path.join(current_wd, os.path.join('Raw_Preprocessed_CWT', 'BCI4_2a_A01T_car_7_30.npy')))
     dataset = dataset[:,:,:,:200]
     dataset = torch.from_numpy(dataset).float()
-    #ev_set = np.load()
+    ev_set = np.load(os.path.join(current_wd, os.path.join('Raw_Preprocessed_CWT', 'BCI4_2a_A01E_car_7_30.npy')))
+    ev_set = ev_set[:, :, :, :200]
+    ev_set = torch.from_numpy(ev_set).float()
 
     with open(os.path.join(current_wd, os.path.join('Raw_Preprocessed_CWT', 'BCI4_2a_A01T_car_labels.txt'))) as labelfile:
         lines = labelfile.readlines()
         data_labels = [int(l.replace('\n','')) for l in lines]
-    #ev_labels =
+    ev_labels = np.load(os.path.join(os.path.join(current_wd, os.path.join('Raw_Preprocessed', 'A01E_labels.npy'))))
 
     print(dataset.shape)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -55,7 +57,7 @@ if __name__ == '__main__':
 
     softmax = torch.nn.Softmax(dim=1)
     predictions = []
-    for x in dataset:
+    for x in ev_set:
         pre, _ = model(x.unsqueeze(0))
         pre = softmax(pre)
         pre = torch.argmax(pre)
@@ -64,8 +66,8 @@ if __name__ == '__main__':
     acc = 0
     for p in range(len(predictions)):
         pre = predictions[p]
-        truth = data_labels[p]-1
-        if pre == truth:
+        truth = int(ev_labels[p])-1
+        if int(pre) == truth:
             acc += 1
     print(acc, acc/len(predictions))
     print('done')
