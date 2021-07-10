@@ -64,6 +64,11 @@ def train(model, train_data, train_labels, val_data, val_labels, optimizer, epoc
             val_epoch_losses.append(loss_v)
         val_epoch_loss = torch.stack(val_epoch_losses).mean(0)
         val_losses.append(val_epoch_loss)
+        if last_min_val_loss is None:
+            last_min_val_loss = val_epoch_loss
+        if val_epoch_loss < last_min_val_loss:
+            last_min_val_loss = val_epoch_loss
+            torch.save(model, 'best_val_model.pth')
 
         print(f'min average epoch loss {min(losses)} min current epoch loss {min(epoch_losses)}')
         print(f'min average val epoch loss {min(val_losses)} min current val epoch loss {min(val_epoch_losses)}')
@@ -101,6 +106,8 @@ if __name__ == '__main__':
     m1_losses = train(model, train_data,train_labels, test_data, test_labels, optimizer, epochs=50)
     print(m1_losses)
     print(min(m1_losses))
+
+    model = torch.load('best_val_model.pth')
 
     softmax = torch.nn.Softmax(dim=1)
     predictions = []
