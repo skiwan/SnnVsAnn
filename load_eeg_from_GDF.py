@@ -138,5 +138,11 @@ for f_config in files:
 		eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
 		car_eeg = get_CAR_eeg(eeg_filtered)
 		car_eeg = np.nan_to_num(car_eeg, neginf=0, posinf=0)
+		# for every trial
+		# find max value of each channel
+		# divide each channel by that max value
+		for trial in range(car_eeg.shape[0]):
+			trial_max = (np.max(np.absolute(car_eeg[trial])))
+			car_eeg[trial] = car_eeg[trial] / trial_max
 		save_eeg_to_npy(car_eeg, save_path)
 		save_labels_to_file(base_path, trial_labels)
