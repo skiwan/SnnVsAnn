@@ -33,7 +33,7 @@ def apply_cwt(raw_data, scales, scales2):
 current_wd = os.getcwd()
 
 files = [
-['BCI4_2a_A01T','BCI4_2a_A01E']
+['BCI4_2a_A01T_car_7_30_full','BCI4_2a_A01E_car_7_30_full']
 #,['BCI4_2a_A02T','BCI4_2a_A02E']
 #,['BCI4_2a_A03T','BCI4_2a_A03E']
 #,'BCI4_2a_A04T' T04 is corrupted due to some technical issues during recording
@@ -65,13 +65,13 @@ for f_e in files:
 	file_root = f_e[0]
 	ev_file_root = f_e[1]
 
-	base_path = os.path.join(current_wd, os.path.join('Raw_Preprocessed', f'{file_root}_car_7_30.npy'))
-	label_file_path = os.path.join('Raw_Preprocessed',f'{file_root}_car_labels.txt')
-	save_file_base = os.path.join('Raw_Preprocessed_CWT', f'{file_root}_car_7_30.npy')
+	base_path = os.path.join(current_wd, os.path.join('raw_normalized_CSP', f'{file_root}.npy'))
+	#label_file_path = os.path.join('Raw_Preprocessed',f'{file_root}_car_labels.txt')
+	save_file_base = os.path.join('raw_normalized_CSP_CWT', f'{file_root}.npy')
 
-	ev_base_path = os.path.join(current_wd, os.path.join('Raw_Preprocessed', f'{ev_file_root}_car_7_30.npy'))
-	ev_label_file_path = os.path.join('Raw_Preprocessed', f'{ev_file_root}_car_labels.txt')
-	ev_save_file_base = os.path.join('Raw_Preprocessed_CWT', f'{ev_file_root}_car_7_30.npy')
+	ev_base_path = os.path.join(current_wd, os.path.join('raw_normalized_CSP', f'{ev_file_root}.npy'))
+	#ev_label_file_path = os.path.join('Raw_Preprocessed', f'{ev_file_root}_car_labels.txt')
+	ev_save_file_base = os.path.join('raw_normalized_CSP_CWT', f'{ev_file_root}.npy')
 
 	print(f'Applying CWT for {base_path}')
 
