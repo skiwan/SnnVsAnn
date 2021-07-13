@@ -5,9 +5,12 @@ from scipy.linalg import fractional_matrix_power
 import scipy.linalg as la
 
 def load_labels(label_file_path):
-	with open(label_file_path, 'r') as label_file:
-		lines = label_file.readlines()
-		return [l.replace('\n','') for l in lines]
+	if '.txt' in label_file_path:
+		with open(label_file_path, 'r') as label_file:
+			lines = label_file.readlines()
+			return [l.replace('\n','') for l in lines]
+	else:
+		return np.load(label_file_path).tolist()
 
 def extract_class_indexes(labels):
 	label_count = len(list(set(labels)))
@@ -68,46 +71,46 @@ current_wd = os.getcwd()
 
 files = [
 ['BCI4_2a_A01T','BCI4_2a_A01E']
-,['BCI4_2a_A02T','BCI4_2a_A02E']
-,['BCI4_2a_A03T','BCI4_2a_A03E']
+#,['BCI4_2a_A02T','BCI4_2a_A02E']
+#,['BCI4_2a_A03T','BCI4_2a_A03E']
 #,'BCI4_2a_A04T' T04 is corrupted due to some technical issues during recording
-,['BCI4_2a_A05T','BCI4_2a_A05E']
-,['BCI4_2a_A06T','BCI4_2a_A06E']
-,['BCI4_2a_A07T','BCI4_2a_A07E']
-,['BCI4_2a_A08T','BCI4_2a_A08E']
-,['BCI4_2a_A09T','BCI4_2a_A09E']
-,['BCI3_3a_k3b' ,'BCI3_3a_k3b']
-,['BCI3_3a_k6b' ,'BCI3_3a_k6b']
-,['BCI3_3a_l1b' ,'BCI3_3a_l1b']
+#,['BCI4_2a_A05T','BCI4_2a_A05E']
+#,['BCI4_2a_A06T','BCI4_2a_A06E']
+#,['BCI4_2a_A07T','BCI4_2a_A07E']
+#,['BCI4_2a_A08T','BCI4_2a_A08E']
+#,['BCI4_2a_A09T','BCI4_2a_A09E']
+#,['BCI3_3a_k3b' ,'BCI3_3a_k3b']
+#,['BCI3_3a_k6b' ,'BCI3_3a_k6b']
+#,['BCI3_3a_l1b' ,'BCI3_3a_l1b']
 
 ]
 
 configs = [
 	[7, 30]
-	,[7,14]
-	,[14,30]
-	,[7,12]
-	,[12,17]
-	,[17,22]
-	,[22,27]
-	,[27,32]
-	,[4,8]
-	,[8,12]
-	,[12,16]
-	,[16,20]
-	,[20,24]
-	,[24,28]
-	,[28,32]
-	,[32,36]
-	,[36,40]
-	,[9,14]
-	,[11,16]
-	,[13,18]
-	,[15,20]
-	,[19,24]
-	,[21,26]
-	,[23,28]
-	,[25,30]
+#	,[7,14]
+#	,[14,30]
+#	,[7,12]
+#	,[12,17]
+#	,[17,22]
+#	,[22,27]
+#	,[27,32]
+#	,[4,8]
+#	,[8,12]
+#	,[12,16]
+#	,[16,20]
+#	,[20,24]
+#	,[24,28]
+#	,[28,32]
+#	,[32,36]
+#	,[36,40]
+#	,[9,14]
+#	,[11,16]
+#	,[13,18]
+#	,[15,20]
+#	,[19,24]
+#	,[21,26]
+#	,[23,28]
+#	,[25,30]
 ]
 
 for f_e in files:
@@ -115,17 +118,17 @@ for f_e in files:
 		low_pass = conf[0]
 		high_pass = conf[1]
 		file_root = f_e[0]
-		base_path = os.path.join(current_wd, f'Preprocessed\{file_root}_car')
+		base_path = os.path.join(current_wd, os.path.join('Raw_Preprocessed', f'{file_root}_car'))
 		label_file_path = f'{base_path}_labels.txt'
 		data_file_path = f'{base_path}_{low_pass}_{high_pass}.npy'
-		save_file_base = f'Filtered\{file_root}_car_{low_pass}_{high_pass}'
+		save_file_base = os.path.join('raw_normalized_CSP', f'{file_root}_car_{low_pass}_{high_pass}')
 
 
 		ev_file_root = f_e[1]
-		ev_base_path = os.path.join(current_wd, f'Preprocessed\{ev_file_root}_car')
-		ev_label_file_path = f'{ev_base_path}_labels.txt'
+		ev_base_path = os.path.join(current_wd, os.path.join('Raw_Preprocessed', f'{ev_file_root}_car'))
+		ev_label_file_path = os.path.join(current_wd, os.path.join(f'Raw_Preprocessed', f'{ev_file_root.split("_")[-1]}_labels.npy'))
 		ev_data_file_path = f'{ev_base_path}_{low_pass}_{high_pass}.npy'
-		ev_save_file_base = f'Filtered\{ev_file_root}_car_{low_pass}_{high_pass}'
+		ev_save_file_base = os.path.join('raw_normalized_CSP', f'{ev_file_root}_car_{low_pass}_{high_pass}')
 
 		labels = load_labels(label_file_path)
 		data = np.load(data_file_path)
@@ -184,3 +187,16 @@ for f_e in files:
 			ev_class_x_filtered = np.asarray(ev_class_x_filtered)
 			#print(class_x_filtered.shape)
 			np.save(f'{ev_save_file_base}_class{x+1}.npy', ev_class_x_filtered)
+
+		# reload all CSP files and concatenate, file is ordered in class 72 per class
+		raw = []
+		for x in range(0, class_count):
+			raw.extend(np.load(f'{save_file_base}_class{x+1}.npy').tolist())
+		raw = np.asarray(raw)
+		np.save(f'{save_file_base}_full.npy', raw)
+
+		raw = []
+		for x in range(0, class_count):
+			raw.extend(np.load(f'{ev_save_file_base}_class{x+1}.npy').tolist())
+		raw = np.asarray(raw)
+		np.save(f'{ev_save_file_base}_full.npy', raw)
