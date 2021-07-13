@@ -4,6 +4,7 @@ import numpy as np
 import os
 import time
 from random import randint
+from sklearn.metrics import cohen_kappa_score
 
 def binary_kappa_value(predictions, truth_labels):
     a = b = c = d = 0
@@ -49,11 +50,11 @@ def random_split(data, labels, splitnr):
     return train_d, train_l, val_d, val_l
 
 
-def train(model, train_data, train_labels, val_data, val_labels, optimizer, epochs=200):
+def train(model, train_data, train_labels, val_data, val_labels, optimizer, epochs=200, weights=None):
     losses = []
     val_losses = []
     start = time.time()
-    loss = torch.nn.NLLLoss()
+    loss = torch.nn.NLLLoss(weight=weights)
     log = torch.nn.LogSoftmax(dim=1)
 
     last_min_val_loss = None
@@ -61,8 +62,6 @@ def train(model, train_data, train_labels, val_data, val_labels, optimizer, epoc
     for i in range(epochs): # repeat this epoch amount of times
         print(f'epoch {i} out of {epochs}')
         epoch_losses = []
-        preds = []
-        labs = []
         for i in range(len(train_data)):
             xs = train_data[i].unsqueeze(0)
             label = train_labels[i]
@@ -70,18 +69,13 @@ def train(model, train_data, train_labels, val_data, val_labels, optimizer, epoc
             out = log(out)
             loss_v = loss(out, torch.tensor(label).unsqueeze(0))
             epoch_losses.append(loss_v)
-            preds.append(torch.argmax(out))
-            labs.append(label)
         epoch_loss = torch.stack(epoch_losses).mean(0)
-        epoch_kappa = binary_kappa_value(preds, labs)
         optimizer.zero_grad()
         epoch_loss.backward()
         optimizer.step()
         losses.append(epoch_loss.detach())
 
         val_epoch_losses = []
-        val_preds = []
-        val_labs = []
         for i in range(len(val_data)):
             xs = val_data[i].unsqueeze(0)
             label = val_labels[i]
@@ -89,10 +83,7 @@ def train(model, train_data, train_labels, val_data, val_labels, optimizer, epoc
             out = log(out)
             loss_v = loss(out, torch.tensor(label).unsqueeze(0))
             val_epoch_losses.append(loss_v)
-            val_preds.append(torch.argmax(out))
-            val_labs.append(label)
         val_epoch_loss = torch.stack(val_epoch_losses).mean(0)
-        val_epoch_kappa_loss = binary_kappa_value(val_preds, val_labs)
         val_losses.append(val_epoch_loss)
         if last_min_val_loss is None:
             last_min_val_loss = val_epoch_loss
@@ -114,16 +105,16 @@ def train(model, train_data, train_labels, val_data, val_labels, optimizer, epoc
 if __name__ == '__main__':
     current_wd = os.getcwd()
 
-    model = BaseSCNN(channels=8, base_filters=8, classes=4, image_height=44).to('cpu')
+    model = BaseSCNN(channels=8, base_filters=8, classes=2, image_height=44).to('cpu')
     model.float()
 
     dataset = np.load(os.path.join(current_wd, os.path.join('raw_normalized_CSP_CWT', 'BCI4_2a_A01T_car_7_30_full.npy')))
     dataset = dataset[:,:,:,:200]
-    dataset = dataset[:144]
+    #dataset = dataset[:144]
     dataset = torch.from_numpy(dataset).float()
     ev_set = np.load(os.path.join(current_wd, os.path.join('raw_normalized_CSP_CWT', 'BCI4_2a_A01E_car_7_30_full.npy')))
     ev_set = ev_set[:, :, :, :200]
-    ev_set = ev_set[:144]
+    #ev_set = ev_set[:144]
     ev_set = torch.from_numpy(ev_set).float()
 
     #with open(os.path.join(current_wd, os.path.join('Raw_Preprocessed_CWT', 'BCI4_2a_A01T_car_labels.txt'))) as labelfile:
@@ -132,14 +123,16 @@ if __name__ == '__main__':
     #ev_labels = np.load(os.path.join(os.path.join(current_wd, os.path.join('Raw_Preprocessed', 'A01E_labels.npy'))))
 
     labels = [1 if i < 72 else 0 for i in range(288)]
-    labels = labels[:144]
+    #labels = labels[:144]
     data_labels = ev_labels = labels
     print(dataset.shape)
 
-    train_data, train_labels, test_data, test_labels = random_split(dataset, data_labels, 120)
+    train_data, train_labels, test_data, test_labels = random_split(dataset, data_labels, 240)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
-    m1_losses = train(model, train_data,train_labels, test_data, test_labels, optimizer, epochs=50)
+    weights = torch.tensor([1,sum(labels[:72]) / len(labels[72:])])
+
+    m1_losses = train(model, train_data,train_labels, test_data, test_labels, optimizer, epochs=50, weights=weights)
     print(m1_losses)
     print(min(m1_losses))
 
