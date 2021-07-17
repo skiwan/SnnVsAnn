@@ -54,10 +54,8 @@ def extract_single_trials(trial_starts, gdf_list, frequency, trial_duration):
 	return single_trials
 
 def save_labels_to_file(base_path, trial_labels):
-	with open (f'{base_path}_labels.txt', 'w+') as label_file:
-		for label in trial_labels:
-			true_label = label - 6
-			label_file.write(f'{true_label}\n')
+	trial_labels = [t-6 for t in trial_labels]
+	np.save(base_path, trial_labels)
 
 
 
@@ -113,7 +111,7 @@ files = [
 	
 ]"""
 
-def load_eeg_from_gdf(low_pass, high_pass, input_file, base_save_file, frequency=250, trial_duration=6):
+def load_eeg_from_gdf(input_file, base_save_file, low_pass, high_pass, frequency=250, trial_duration=6):
 	save_path = f'{base_save_file}_{low_pass}_{high_pass}.npy'
 	raw_gdf = mne.io.read_raw_gdf(input_file)
 	gdf_df = raw_gdf.to_data_frame()
