@@ -66,7 +66,7 @@ def calculate_Gs(P, R, R_tilde):
 # EQ_8
 def calculate_I(P,U,R,R_tilde):
 	return np.transpose(np.transpose(P).dot(U)).dot(R).dot(np.transpose(P).dot(U)) + np.transpose(np.transpose(P).dot(U)).dot(R_tilde).dot(np.transpose(P).dot(U))
-
+"""
 current_wd = os.getcwd()
 
 files = [
@@ -111,92 +111,89 @@ configs = [
 #	,[21,26]
 #	,[23,28]
 #	,[25,30]
-]
-
-for f_e in files:
-	for conf in configs:
-		low_pass = conf[0]
-		high_pass = conf[1]
-		file_root = f_e[0]
-		base_path = os.path.join(current_wd, os.path.join('Raw_Preprocessed', f'{file_root}_car'))
-		label_file_path = f'{base_path}_labels.txt'
-		data_file_path = f'{base_path}_{low_pass}_{high_pass}.npy'
-		save_file_base = os.path.join('raw_normalized_CSP', f'{file_root}_car_{low_pass}_{high_pass}')
+]"""
 
 
-		ev_file_root = f_e[1]
-		ev_base_path = os.path.join(current_wd, os.path.join('Raw_Preprocessed', f'{ev_file_root}_car'))
-		ev_label_file_path = os.path.join(current_wd, os.path.join(f'Raw_Preprocessed', f'{ev_file_root.split("_")[-1]}_labels.npy'))
-		ev_data_file_path = f'{ev_base_path}_{low_pass}_{high_pass}.npy'
-		ev_save_file_base = os.path.join('raw_normalized_CSP', f'{ev_file_root}_car_{low_pass}_{high_pass}')
+raw_in='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\A01T_7_30.npy',
+raw_label='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\A01T.npy',
+raw_save='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\A01T_7_30_CSP.npy',
+ev_save='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\EV_A01T_7_30_CSP.npy',
 
-		labels = load_labels(label_file_path)
-		data = np.load(data_file_path)
-		trials = data.shape[0]
-		time_steps = data.shape[1]
-		channels = data.shape[2]
-		class_idxs = extract_class_indexes(labels)
-		class_count = len(class_idxs)
 
-		ev_labels = load_labels(ev_label_file_path)
-		ev_data = np.load(ev_data_file_path)
-		ev_class_idxs = extract_class_indexes(ev_labels)
-		ev_class_count = len(ev_class_idxs)
+def apply_csp(raw_input_file, raw_label_file, ev_input_file, ev_label_file, base_save_path, ev_save_path, low_pass, high_pass):
+	labels = load_labels(raw_label_file)
+	data = np.load(raw_input_file)
+	trials = data.shape[0]
+	time_steps = data.shape[1]
+	channels = data.shape[2]
+	class_idxs = extract_class_indexes(labels)
+	class_count = len(class_idxs)
 
-		R_s = []
-		for x in range(0, class_count):
-			R_s.append(calculate_covariance_for_class(x, class_idxs, data))
+	ev_labels = load_labels(ev_label_file)
+	ev_data = np.load(ev_input_file)
+	ev_class_idxs = extract_class_indexes(ev_labels)
+	ev_class_count = len(ev_class_idxs)
 
-		R_X = sum(R_s)
+	R_s = []
+	for x in range(0, class_count):
+		R_s.append(calculate_covariance_for_class(x, class_idxs, data))
 
-		R_s_tilde = []
-		for x in range(0, class_count):
-			R_s_tilde.append((R_X-R_s[x])/3)
+	R_X = sum(R_s)
 
-		R_x_U, R_x_lambda = calculate_singular_value_decomposition(R_s[0] + R_s_tilde[0])
-		P = calculate_covariance_transformation_matrix(R_x_lambda, R_x_U)
+	R_s_tilde = []
+	for x in range(0, class_count):
+		R_s_tilde.append((R_X-R_s[x])/3)
 
-		g_pairs = []
-		for x in range(0, class_count):
-			G, G_tilde = calculate_Gs(P, R_s[x], R_s_tilde[x])
-			g_pairs.append([G, G_tilde])
+	R_x_U, R_x_lambda = calculate_singular_value_decomposition(R_s[0] + R_s_tilde[0])
+	P = calculate_covariance_transformation_matrix(R_x_lambda, R_x_U)
 
-		final_filters = []
-		for x in range(0, class_count):
-			G_U, G_lambda = calculate_singular_value_decomposition(g_pairs[x][0])
-			#G_tilde_U, G_tilde_lambda = calculate_singular_value_decomposition(G_1_tilde)
-			V = np.dot(np.transpose(G_U), P).astype(np.float32)
-			final_filters.append(np.concatenate((V[:4],V[-4:])))
+	g_pairs = []
+	for x in range(0, class_count):
+		G, G_tilde = calculate_Gs(P, R_s[x], R_s_tilde[x])
+		g_pairs.append([G, G_tilde])
 
-		for x in range(0, class_count):
-			class_x_filtered = []
-			for idx in class_idxs[x]:
-				data_sample = data[idx]
-				filtered = np.dot(final_filters[x], data_sample)
-				class_x_filtered.append(filtered)
-			class_x_filtered = np.asarray(class_x_filtered)
-			#print(class_x_filtered.shape)
-			np.save(f'{save_file_base}_class{x+1}.npy', class_x_filtered)
+	final_filters = []
+	for x in range(0, class_count):
+		G_U, G_lambda = calculate_singular_value_decomposition(g_pairs[x][0])
+		#G_tilde_U, G_tilde_lambda = calculate_singular_value_decomposition(G_1_tilde)
+		V = np.dot(np.transpose(G_U), P).astype(np.float32)
+		final_filters.append(np.concatenate((V[:4],V[-4:])))
 
-		for x in range(0, ev_class_count):
-			ev_class_x_filtered = []
-			for idx in ev_class_idxs[x]:
-				data_sample = ev_data[idx]
-				filtered = np.dot(final_filters[x], data_sample)
-				ev_class_x_filtered.append(filtered)
-			ev_class_x_filtered = np.asarray(ev_class_x_filtered)
-			#print(class_x_filtered.shape)
-			np.save(f'{ev_save_file_base}_class{x+1}.npy', ev_class_x_filtered)
+	for x in range(0, class_count):
+		class_x_filtered = []
+		for idx in class_idxs[x]:
+			data_sample = data[idx]
+			filtered = np.dot(final_filters[x], data_sample)
+			class_x_filtered.append(filtered)
+		class_x_filtered = np.asarray(class_x_filtered)
+		#print(class_x_filtered.shape)
+		np.save(f'{base_save_path}_class{x+1}.npy', class_x_filtered)
 
-		# reload all CSP files and concatenate, file is ordered in class 72 per class
-		raw = []
-		for x in range(0, class_count):
-			raw.extend(np.load(f'{save_file_base}_class{x+1}.npy').tolist())
-		raw = np.asarray(raw)
-		np.save(f'{save_file_base}_full.npy', raw)
+	for x in range(0, ev_class_count):
+		ev_class_x_filtered = []
+		for idx in ev_class_idxs[x]:
+			data_sample = ev_data[idx]
+			filtered = np.dot(final_filters[x], data_sample)
+			ev_class_x_filtered.append(filtered)
+		ev_class_x_filtered = np.asarray(ev_class_x_filtered)
+		#print(class_x_filtered.shape)
+		np.save(f'{ev_save_path}_class{x+1}.npy', ev_class_x_filtered)
 
-		raw = []
-		for x in range(0, class_count):
-			raw.extend(np.load(f'{ev_save_file_base}_class{x+1}.npy').tolist())
-		raw = np.asarray(raw)
-		np.save(f'{ev_save_file_base}_full.npy', raw)
+	# reload all CSP files and concatenate, file is ordered in class 72 per class
+	raw = []
+	for x in range(0, class_count):
+		raw.extend(np.load(f'{base_save_path}_class{x+1}.npy').tolist())
+	raw = np.asarray(raw)
+	np.save(f'{base_save_path}_full.npy', raw)
+
+	raw = []
+	for x in range(0, class_count):
+		raw.extend(np.load(f'{ev_save_path}_class{x+1}.npy').tolist())
+	raw = np.asarray(raw)
+	np.save(f'{ev_save_path}_full.npy', raw)
+
+def main(raw_input_file, raw_label_file, ev_input_file, ev_label_file, base_save_path, ev_save_path, low_pass, high_pass):
+	apply_csp(raw_input_file, raw_label_file, ev_input_file, ev_label_file, base_save_path, ev_save_path, low_pass, high_pass)
+
+if __name__ == "__main__":
+	main(*sys.argv[1:])
