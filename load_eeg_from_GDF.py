@@ -55,7 +55,7 @@ def extract_single_trials(trial_starts, gdf_list, frequency, trial_duration):
 
 def save_labels_to_file(base_path, trial_labels):
 	trial_labels = [t-6 for t in trial_labels]
-	np.save(base_path, trial_labels)
+	np.save(f'{base_path}_labels.npy', trial_labels)
 
 
 
