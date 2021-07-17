@@ -112,12 +112,12 @@ configs = [
 #	,[23,28]
 #	,[25,30]
 ]"""
-
+"""
 
 raw_in='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\A01T_7_30.npy',
 raw_label='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\A01T.npy',
-raw_save='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\A01T_7_30_CSP.npy',
-ev_save='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\EV_A01T_7_30_CSP.npy',
+raw_save='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\A01T_7_30_CSP',
+ev_save='F:\KTH\MA-Thesis\ThesisFolder\SnnVsAnn\sraw\EV_A01T_7_30_CSP',"""
 
 
 def apply_csp(raw_input_file, raw_label_file, ev_input_file, ev_label_file, base_save_path, ev_save_path, low_pass, high_pass):
