@@ -11,7 +11,7 @@ def average_signal(data, stepsize):
 	prepared = data.reshape((y,int(x/stepsize),stepsize))
 	return np.mean(prepared, axis=-1)
 
-def apply_cwt(raw_data, scales, scales2):
+def use_cwt(raw_data, scales, scales2):
 	cwt_trials = []
 	for t in range(raw_data.shape[0]):
 		trial = raw_data[t]
@@ -47,45 +47,28 @@ files = [
 #,['BCI3_3a_l1b' ,'BCI3_3a_l1b']
 
 ]
-
-
-
-current_wd = os.getcwd()
-
-configs = [
+"""configs = [
 	[7,15,0.5],
 	[16,30,0.5]
-]
-
-dt = 0.025
-
-for f_e in files:
-	scales = np.arange(*configs[0])
-	scales2 = np.arange(*configs[1])
-	file_root = f_e[0]
-	ev_file_root = f_e[1]
-
-	base_path = os.path.join(current_wd, os.path.join('raw_normalized_CSP', f'{file_root}.npy'))
-	#label_file_path = os.path.join('Raw_Preprocessed',f'{file_root}_car_labels.txt')
-	save_file_base = os.path.join('raw_normalized_CSP_CWT', f'{file_root}.npy')
-
-	ev_base_path = os.path.join(current_wd, os.path.join('raw_normalized_CSP', f'{ev_file_root}.npy'))
-	#ev_label_file_path = os.path.join('Raw_Preprocessed', f'{ev_file_root}_car_labels.txt')
-	ev_save_file_base = os.path.join('raw_normalized_CSP_CWT', f'{ev_file_root}.npy')
-
-	print(f'Applying CWT for {base_path}')
+]"""
 
 
+
+def apply_cwt(input_file, save_file, l1, h1, s1, l2, h2, s2, dt=0.025):
+	scales = [l1, h1, s1]
+	scales2 = [l2, h2, s2]
+	print(f'Applying CWT for {input_file}')
 	# load file
-	data = np.load(base_path)
-	ev_data = np.load(ev_base_path)
+	data = np.load(input_file)
 
 	# apply cwt (split and rejoin channels)
-	data_cwt = apply_cwt(data, scales, scales2)
-	ev_data_cwt = apply_cwt(ev_data, scales, scales2)
-
+	data_cwt = use_cwt(data, scales, scales2)
 
 	# save file
-	np.save(f'{save_file_base}', data_cwt)
-	np.save(f'{ev_save_file_base}', ev_data_cwt)
+	np.save(f'{save_file}', data_cwt)
 
+def main(input_file, save_file, l1, h1, s1, l2, h2, s2, dt=0.025):
+	apply_cwt(input_file, save_file, l1, h1, s1, l2, h2, s2, dt)
+
+if __name__ == "__main__":
+	main(*sys.argv[1:])
