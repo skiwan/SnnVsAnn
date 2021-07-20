@@ -1,8 +1,0 @@
-get label files for BCI3 3a
-Get rid of Channels last 3 extra channels on BCI 4 2a
-
-rename files properly
-restrucutre
-add proper readme
-
-find out why values are so different in dimension (from asci is 0.00001... from gdf is 10.00 ...)
