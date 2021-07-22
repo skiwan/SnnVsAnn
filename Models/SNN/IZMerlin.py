@@ -38,16 +38,24 @@ class CustomIzhikevichCell(torch.nn.Module):
         state.v.requires_grad = True
         return state
 
-    def backward(self, state: CustomIzhikevichState, loss):
+    def backward(self, state: CustomIzhikevichState, learning_signals):
         random_weight = 0.5
+        print(state.e.size())
+        if state.e.size()[0] != len(learning_signals):
+            print('Length of Learning Signals and eligbility traces is not equal')
+            return None
+        grads = []
+        states = state.e
         #TODO Q: Do I take first or last eligibility trace?
-        while state.e.numel() > 0:
-            trace = state.e[:, -1:]
-            grad = loss * trace * random_weight
-            state.e[:, :-1]
+        while states.numel() > 0:
+            trace = state.e[-1:, :]
+            ls = learning_signals[-1]
+            grads.append(ls * trace * random_weight)
+            states = states[:-1, :]
+            learning_signals = learning_signals[:-1]
         print('No eligibility traces left')
-        self.grad = grad
-        return grad
+        self.grad = grads[-1]
+        return grads
 
 def partial_hidden(iz_state: CustomIzhikevichState, p: IzhikevichParameters, dt: float): # autograd would solve this
     s = iz_state
@@ -62,6 +70,7 @@ def compute_eligibility_trace(iz_state: CustomIzhikevichState, p: IzhikevichPara
         new_e = torch.mul(old_e, partial_hidden(iz_state, p, dt))
     return new_e
 
+# TODO eligibility trace needs right dimensions for time and multi neurons
 def custom_izhikevich_step(
     input_current: torch.Tensor,
     s: CustomIzhikevichState,
@@ -73,9 +82,14 @@ def custom_izhikevich_step(
     )
     u_ = s.u + p.tau_inv * dt * p.a * (p.b * s.v - s.u)
 
+    s_ =  CustomIzhikevichState(v_, u_, s.e)
+
     # Todo Q:should this happen before or after membrane reset?
-    e_ = compute_eligibility_trace(s)
-    e_ = torch.column_stack((s.e, e_))
+    e_ = compute_eligibility_trace(s_, p, dt)
+    if s_.e.numel() > 0:
+        e_ = torch.column_stack((s_.e, e_))
+    else:
+        e_ = torch.unsqueeze(e_,0)
 
     z_ = heaviside(v_ - p.v_th)
     v_ = (1 - z_) * v_ + z_ * p.c
