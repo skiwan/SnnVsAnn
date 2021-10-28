@@ -6,3 +6,9 @@ restrucutre
 add proper readme
 
 find out why values are so different in dimension (from asci is 0.00001... from gdf is 10.00 ...)
+
+
+implement
+Online Spatio-Temporal Learning in Deep Neural Networks
+OSTL (eprop for multi layers)
+
