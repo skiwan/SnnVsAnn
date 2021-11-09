@@ -111,7 +111,7 @@ files = [
 	
 ]"""
 
-def load_eeg_from_gdf(input_file, base_save_file, low_pass, high_pass, frequency=250, trial_duration=6):
+def load_eeg_from_gdf(low_pass, high_pass, input_file, base_save_file, frequency=250, trial_duration=6):
 	save_path = f'{base_save_file}_{low_pass}_{high_pass}.npy'
 	raw_gdf = mne.io.read_raw_gdf(input_file)
 	gdf_df = raw_gdf.to_data_frame()
@@ -134,7 +134,7 @@ def load_eeg_from_gdf(input_file, base_save_file, low_pass, high_pass, frequency
 	save_labels_to_file(base_save_file, trial_labels)
 
 def main(low_pass, high_pass, input_file, save_file, frequency=250, trial_duration=6):
-	load_eeg_from_gdf(low_pass, high_pass, input_file, save_file, frequency, trial_duration)
+	load_eeg_from_gdf(int(low_pass), int(high_pass), input_file, save_file, frequency, trial_duration)
 
 if __name__ == "__main__":
 	main(*sys.argv[1:])

@@ -130,7 +130,7 @@ def load_eeg_from_asci(raw_input_file, trigger_input_file, save_file, low_pass, 
 
 
 def main(raw_input_file, trigger_input_file, save_file, low_pass, high_pass, frequency=250, trial_duration=7):
-	load_eeg_from_asci(raw_input_file, trigger_input_file, save_file, low_pass, high_pass, frequency, trial_duration)
+	load_eeg_from_asci(raw_input_file, trigger_input_file, save_file, int(low_pass), int(high_pass), frequency, trial_duration)
 
 if __name__ == "__main__":
 	main(*sys.argv[1:])
