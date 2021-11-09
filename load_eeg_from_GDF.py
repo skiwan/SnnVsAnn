@@ -54,16 +54,13 @@ def extract_single_trials(trial_starts, gdf_list, frequency, trial_duration):
 	return single_trials
 
 def save_labels_to_file(base_path, trial_labels):
-	with open (f'{base_path}_labels.txt', 'w+') as label_file:
-		for label in trial_labels:
-			true_label = label - 6
-			label_file.write(f'{true_label}\n')
+	trial_labels = [t-6 for t in trial_labels]
+	np.save(f'{base_path}_labels.npy', trial_labels)
 
 
-current_wd = os.getcwd()
-frequency = 250
-trial_duration = 6
 
+
+"""
 configs = [
 	[7, 30]
 	,[7,14]
@@ -112,31 +109,32 @@ files = [
 	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A08E.gdf'),'A08E']
 	,[os.path.join(current_wd, 'Datasets\BCICompetitionIV\Data\BCICIV_2a_gdf\A09E.gdf'),'A09E']
 	
-]
+]"""
 
-for f_config in files:
-	for config in configs:
-		low_pass = config[0]
-		high_pass = config[1]
-		file_path = f_config[0]
-		file_name_ending = f_config[1]
-		base_path = os.path.join(current_wd, f'Preprocessed\BCI4_2a_{file_name_ending}_car')
-		save_path = f'{base_path}_{low_pass}_{high_pass}.npy'
+def load_eeg_from_gdf(low_pass, high_pass, input_file, base_save_file, frequency=250, trial_duration=6):
+	save_path = f'{base_save_file}_{low_pass}_{high_pass}.npy'
+	raw_gdf = mne.io.read_raw_gdf(input_file)
+	gdf_df = raw_gdf.to_data_frame()
+	gdf_df = gdf_df.sort_values('time',ascending=True)
+	gdf_list = gdf_df.drop(labels=['time'], axis=1).values.tolist()
 
+	events, events_ids = mne.events_from_annotations(raw_gdf)
+	trial_starts, trial_labels = extract_labels_and_trial_starts(events)
+	single_trials = extract_single_trials(trial_starts, gdf_list, frequency, trial_duration)
 
-		raw_gdf = mne.io.read_raw_gdf(file_path)
-		gdf_df = raw_gdf.to_data_frame()
-		gdf_df = gdf_df.sort_values('time',ascending=True)
-		gdf_list = gdf_df.drop(labels=['time'], axis=1).values.tolist()
+	eeg_raw = np.asarray(single_trials)
+	eeg_raw = np.swapaxes(eeg_raw, 1, 2)
+	eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
+	car_eeg = get_CAR_eeg(eeg_filtered)
+	car_eeg = np.nan_to_num(car_eeg, neginf=0, posinf=0)
+	for trial in range(car_eeg.shape[0]):
+		trial_max = (np.max(np.absolute(car_eeg[trial])))
+		car_eeg[trial] = car_eeg[trial] / trial_max
+	save_eeg_to_npy(car_eeg, save_path)
+	save_labels_to_file(base_save_file, trial_labels)
 
-		events, events_ids = mne.events_from_annotations(raw_gdf)
-		trial_starts, trial_labels = extract_labels_and_trial_starts(events)
-		single_trials = extract_single_trials(trial_starts, gdf_list, frequency, trial_duration)
+def main(low_pass, high_pass, input_file, save_file, frequency=250, trial_duration=6):
+	load_eeg_from_gdf(int(low_pass), int(high_pass), input_file, save_file, frequency, trial_duration)
 
-		eeg_raw = np.asarray(single_trials)
-		eeg_raw = np.swapaxes(eeg_raw, 1, 2)
-		eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
-		car_eeg = get_CAR_eeg(eeg_filtered)
-		car_eeg = np.nan_to_num(car_eeg, neginf=0, posinf=0)
-		save_eeg_to_npy(car_eeg, save_path)
-		save_labels_to_file(base_path, trial_labels)
+if __name__ == "__main__":
+	main(*sys.argv[1:])

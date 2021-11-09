@@ -65,11 +65,6 @@ def get_true_labels(true_label_path):
 def save_eeg_to_npy(eeg_data, file_path_name):
 	np.save(file_path_name, eeg_data)
 
-
-current_wd = os.getcwd()
-# inputs
-frequency = 250
-trial_duration = 7
 """low_pass = 7
 high_pass = 30
 test_file = os.path.join(current_wd, 'Datasets\BCICompetitionIII\Data\BCIIII_DataSetIIIa-Sub_1_k3b_ascii\k3b_s.txt')
@@ -81,7 +76,7 @@ save_path = os.path.join(current_wd, 'Preprocessed\BCI3a_k3b_car_7_30.npy')
 
 eeg_filtered = get_filtered_eeg(test_file,trigger_path, low_pass, high_pass, frequency)
 car_eeg = get_CAR_eeg(eeg_filtered)
-save_eeg_to_asci(car_eeg, save_path)"""
+save_eeg_to_asci(car_eeg, save_path)
 
 files = [
 	[os.path.join(current_wd, 'Datasets\BCICompetitionIII\Data\BCIIII_DataSetIIIa-Sub_1_k3b_ascii\k3b_s.txt')
@@ -120,15 +115,22 @@ configs = [
 	,[21,26]
 	,[23,28]
 	,[25,30]
-]
-for f_config in files:
-	for config in configs:
-		low_pass = config[0]
-		high_pass = config[1]
-		raw_file = f_config[0]
-		trigger_path = f_config[1]
-		save_path = f'{f_config[2]}_{low_pass}_{high_pass}.npy'
-		eeg_filtered = get_filtered_eeg(raw_file,trigger_path, low_pass, high_pass, frequency, trial_duration)
-		car_eeg = get_CAR_eeg(eeg_filtered)
-		car_eeg = np.nan_to_num(car_eeg, neginf=0, posinf=0)
-		save_eeg_to_npy(car_eeg, save_path)
+]"""
+
+def load_eeg_from_asci(raw_input_file, trigger_input_file, save_file, low_pass, high_pass, frequency=250, trial_duration=7):
+	save_path = f'{save_file}_{low_pass}_{high_pass}.npy'
+	eeg_filtered = get_filtered_eeg(raw_input_file, trigger_input_file, low_pass, high_pass, frequency, trial_duration)
+	car_eeg = get_CAR_eeg(eeg_filtered)
+	car_eeg = np.nan_to_num(car_eeg, neginf=0, posinf=0)
+	for trial in range(car_eeg.shape[0]):
+		trial_max = (np.max(np.absolute(car_eeg[trial])))
+		car_eeg[trial] = car_eeg[trial] / trial_max
+	save_eeg_to_npy(car_eeg, save_path)
+
+
+
+def main(raw_input_file, trigger_input_file, save_file, low_pass, high_pass, frequency=250, trial_duration=7):
+	load_eeg_from_asci(raw_input_file, trigger_input_file, save_file, int(low_pass), int(high_pass), frequency, trial_duration)
+
+if __name__ == "__main__":
+	main(*sys.argv[1:])
