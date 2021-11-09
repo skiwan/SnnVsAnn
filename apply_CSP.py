@@ -159,9 +159,10 @@ def apply_csp(raw_input_file, raw_label_file, ev_input_file, ev_label_file, base
 		V = np.dot(np.transpose(G_U), P).astype(np.float32)
 		final_filters.append(np.concatenate((V[:4],V[-4:])))
 
+
 	for x in range(0, class_count):
 		class_x_filtered = []
-		for idx in class_idxs[x]:
+		for idx in range(data.shape[0]):
 			data_sample = data[idx]
 			filtered = np.dot(final_filters[x], data_sample)
 			class_x_filtered.append(filtered)
@@ -171,26 +172,13 @@ def apply_csp(raw_input_file, raw_label_file, ev_input_file, ev_label_file, base
 
 	for x in range(0, ev_class_count):
 		ev_class_x_filtered = []
-		for idx in ev_class_idxs[x]:
+		for idx in range(ev_data.shape[0]):
 			data_sample = ev_data[idx]
 			filtered = np.dot(final_filters[x], data_sample)
 			ev_class_x_filtered.append(filtered)
 		ev_class_x_filtered = np.asarray(ev_class_x_filtered)
 		#print(class_x_filtered.shape)
 		np.save(f'{ev_save_path}_class{x+1}.npy', ev_class_x_filtered)
-
-	# reload all CSP files and concatenate, file is ordered in class 72 per class
-	raw = []
-	for x in range(0, class_count):
-		raw.extend(np.load(f'{base_save_path}_class{x+1}.npy').tolist())
-	raw = np.asarray(raw)
-	np.save(f'{base_save_path}_full.npy', raw)
-
-	raw = []
-	for x in range(0, class_count):
-		raw.extend(np.load(f'{ev_save_path}_class{x+1}.npy').tolist())
-	raw = np.asarray(raw)
-	np.save(f'{ev_save_path}_full.npy', raw)
 
 def main(raw_input_file, raw_label_file, ev_input_file, ev_label_file, base_save_path, ev_save_path, low_pass, high_pass):
 	apply_csp(raw_input_file, raw_label_file, ev_input_file, ev_label_file, base_save_path, ev_save_path, low_pass, high_pass)
