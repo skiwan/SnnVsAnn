@@ -66,7 +66,7 @@ def extract_classes(data, classes):
 			data_classes[0].append(data[i])
 		else:
 			data_classes[1].append(data[i])
-	return data_classes
+	return [np.asarray(data_classes[0]), np.asarray(data_classes[1])]
 
 def transform_for_class(labels, class_label):
 	# transform each label of class label to 1 and every other to 0
@@ -128,10 +128,10 @@ def apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_fi
 	ev_data = ev_data / ev_data_abs_max
 
 
-	class1_fscores = calculate_Fscores(data_classes[0], np.concatenate(data_classes[1], axis=0), data)
+	class1_fscores = calculate_Fscores(data_classes[0], data_classes[1], data)
 
 	# calculate average fscore -> TODO discuss this
-	class1_fscore_avg = np.average(class1_fscores)
+	class1_fscore_avg = np.mean(class1_fscores)
 	# select indices of features above fscore
 
 	class1_f_idx = [i for i in range(0,len(class1_fscores)) if class1_fscores[i] >= class1_fscore_avg]
@@ -156,8 +156,8 @@ def apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_fi
 	np.save(f'{ev_save_file_base}_class{class_label}.npy', ev_class1_f_data)
 
 
-def main(raw_file, raw_label, raw_save_path, ev_file, ev_label, ev_save_path):
-	apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_file, ev_label, ev_save_path)
+def main(raw_file, raw_label, raw_save_path, ev_file, ev_save_path, class_label=1):
+	apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_file, ev_save_path, class_label)
 
 if __name__ == "__main__":
 	main(*sys.argv[1:])
