@@ -73,11 +73,19 @@ def transform_for_class(labels, class_label):
 	new_labels = []
 	for i in range(len(labels)):
 		current_label = labels[i]
-		if current_label == class_label:
+		if int(current_label) == int(class_label):
 			new_labels.append(1)
 		else:
 			new_labels.append(0)
 	return new_labels
+
+def normalize_samples(data_set):
+	normalized_data = []
+	for sample in data_set:
+		sample_abs_max = max(abs(np.amax(sample)), abs(np.amin(sample)))
+		sample = sample / sample_abs_max
+		normalized_data.append(sample)
+	return np.asarray(normalized_data)
 
 """
 files = [
@@ -118,14 +126,16 @@ def apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_fi
 	labels = load_labels(raw_label)
 	labels = transform_for_class(labels, class_label)
 	data = np.load(data_file_path)
-	data_abs_max = max(abs(np.amax(data)),abs(np.amin(data)))
-	data = data / data_abs_max
+	#data_abs_max = max(abs(np.amax(data)),abs(np.amin(data)))
+	#data = data / data_abs_max
+	data = normalize_samples(data)
 	data_classes = extract_classes(data, labels)
 
 	ev_data_file_path = ev_file
 	ev_data = np.load(ev_data_file_path)
-	ev_data_abs_max = max(abs(np.amax(ev_data)),abs(np.amin(ev_data)))
-	ev_data = ev_data / ev_data_abs_max
+	#ev_data_abs_max = max(abs(np.amax(ev_data)),abs(np.amin(ev_data)))
+	#ev_data = ev_data / ev_data_abs_max
+	ev_data = normalize_samples(ev_data)
 
 
 	class1_fscores = calculate_Fscores(data_classes[0], data_classes[1], data)
