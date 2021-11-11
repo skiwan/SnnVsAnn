@@ -1,5 +1,5 @@
 import numpy as np
-import os
+import os, sys
 import pywt
 
 def average_signal(data, stepsize):
@@ -56,7 +56,9 @@ files = [
 
 def apply_cwt(input_file, save_file, l1, h1, s1, l2, h2, s2, dt=0.025):
 	scales = [l1, h1, s1]
+	scales = np.arange(*scales)
 	scales2 = [l2, h2, s2]
+	scales2 =  np.arange(*scales2)
 	print(f'Applying CWT for {input_file}')
 	# load file
 	data = np.load(input_file)
@@ -68,7 +70,7 @@ def apply_cwt(input_file, save_file, l1, h1, s1, l2, h2, s2, dt=0.025):
 	np.save(f'{save_file}', data_cwt)
 
 def main(input_file, save_file, l1, h1, s1, l2, h2, s2, dt=0.025):
-	apply_cwt(input_file, save_file, l1, h1, s1, l2, h2, s2, dt)
+	apply_cwt(input_file, save_file, float(l1), float(h1), float(s1), float(l2), float(h2), float(s2), dt)
 
 if __name__ == "__main__":
 	main(*sys.argv[1:])
