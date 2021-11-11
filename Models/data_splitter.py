@@ -22,7 +22,7 @@ class DataSplitter():
         validate_data = self.dataset[validate_idxs]
         validate_labels = self.labels[validate_idxs]
 
-        np.save(train_data, f'{self.target_path}_train_data.npy')
-        np.save(train_labels, f'{self.target_path}_train_labels.npy')
-        np.save(validate_data, f'{self.target_path}_validate_data.npy')
-        np.save(validate_labels, f'{self.target_path}_validate_labels.npy')
+        np.save(f'{self.target_path}_train_data.npy', train_data)
+        np.save(f'{self.target_path}_train_labels.npy', train_labels)
+        np.save(f'{self.target_path}_validate_data.npy', validate_data)
+        np.save(f'{self.target_path}_validate_labels.npy', validate_labels)

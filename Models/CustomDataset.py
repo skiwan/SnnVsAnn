@@ -1,7 +1,7 @@
 import numpy as np
 from torch.utils.data import Dataset
 
-class Dataset(Dataset):
+class CustomDataset(Dataset):
 
     def __init__(self, label_file, data_file):
         self.data_labels = np.load(label_file)
