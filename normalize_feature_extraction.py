@@ -118,13 +118,15 @@ classes = [
 
 ]"""
 
-def apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_file, ev_save_path, class_label=1):
+def apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_file, ev_label, ev_save_path, class_label=1, extract=False):
 	save_file_base = f'{raw_save_path}'
 	ev_save_file_base = f'{ev_save_path}'
 
+	# TODO load EV labels, save ev and non ev new labels
 	data_file_path = raw_file
 	labels = load_labels(raw_label)
 	labels = transform_for_class(labels, class_label)
+	np.save(f'{save_file_base}_class{class_label}_labels.npy', labels)
 	data = np.load(data_file_path)
 	#data_abs_max = max(abs(np.amax(data)),abs(np.amin(data)))
 	#data = data / data_abs_max
@@ -133,6 +135,9 @@ def apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_fi
 
 	ev_data_file_path = ev_file
 	ev_data = np.load(ev_data_file_path)
+	ev_labels = load_labels(ev_label)
+	ev_labels = transform_for_class(ev_labels, class_label)
+	np.save(f'{ev_save_file_base}_class{class_label}_labels.npy', ev_labels)
 	#ev_data_abs_max = max(abs(np.amax(ev_data)),abs(np.amin(ev_data)))
 	#ev_data = ev_data / ev_data_abs_max
 	ev_data = normalize_samples(ev_data)
@@ -140,12 +145,14 @@ def apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_fi
 
 	class1_fscores = calculate_Fscores(data_classes[0], data_classes[1], data)
 
-	# calculate average fscore -> TODO discuss this
+	# calculate average fscore ->
 	class1_fscore_avg = np.mean(class1_fscores)
 	# select indices of features above fscore
 
-	class1_f_idx = [i for i in range(0,len(class1_fscores)) if class1_fscores[i] >= class1_fscore_avg]
-	
+	if extract:
+		class1_f_idx = [i for i in range(0,len(class1_fscores)) if class1_fscores[i] >= class1_fscore_avg]
+	else:
+		class1_f_idx = [i for i in range(0, len(class1_fscores))]
 	# save selected feature
 	np.save(f"{raw_save_path}_filters.npy", class1_f_idx)
 
@@ -166,8 +173,8 @@ def apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_fi
 	np.save(f'{ev_save_file_base}_class{class_label}.npy', ev_class1_f_data)
 
 
-def main(raw_file, raw_label, raw_save_path, ev_file, ev_save_path, class_label=1):
-	apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_file, ev_save_path, class_label)
+def main(raw_file, raw_label, raw_save_path, ev_file, ev_label, ev_save_path, class_label=1, extract=False):
+	apply_normlized_feature_extraction(raw_file, raw_label, raw_save_path, ev_file, ev_label, ev_save_path, class_label, extract=False)
 
 if __name__ == "__main__":
 	main(*sys.argv[1:])
