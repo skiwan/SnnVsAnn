@@ -10,6 +10,6 @@ class DataCombiner():
         datasets = []
         for path in self.dataset_paths:
             datasets.append(np.load(path))
-        whole_set = np.concatenate(datasets, axis=0)
+        whole_set = np.concatenate(datasets, axis=1)
         np.save(f'{self.target_path}_whole_set.npy', whole_set)
         np.save(f'{self.target_path}_whole_labels.npy', self.labels)
