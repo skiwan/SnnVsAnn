@@ -1,11 +1,11 @@
-from norse.torch import SequentialState
+from torch.nn import Sequential
 import torch
 
 
 class BaseSCNN(torch.nn.Module):
   def __init__(self, channels, base_filters, classes, image_height=44, padding=0, stride=1, dropout_value=0.3):
     super().__init__()
-    self.model = SequentialState(
+    self.model = Sequential(
         torch.nn.Conv2d(channels, base_filters, kernel_size=(image_height, 1), padding=padding, stride=stride),
         torch.nn.BatchNorm2d(base_filters),
         torch.nn.ReLU(),
@@ -19,7 +19,7 @@ class BaseSCNN(torch.nn.Module):
         torch.nn.Linear(base_filters*40, base_filters*8),
         torch.nn.Dropout(p=dropout_value),
         torch.nn.Linear(base_filters*8, classes),
-        #torch.nn.Softmax(dim=1) Excluded to be able to better use this in advanced models
+        #torch.nn.Softmax(dim=1) #Excluded to be able to better use this in advanced models
     )
 
   def forward(self, xs):
