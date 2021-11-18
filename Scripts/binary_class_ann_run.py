@@ -7,6 +7,34 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+def load_and_run_eval(model_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, model_dropout):
+    model = BaseSCNN(channels=model_channels, base_filters=8, classes=model_classes, image_height=44, dropout_value=model_dropout).to('cpu')
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+    eval_data_file = eval_data_file_path
+    eval_label_file = eval_label_file_path
+    evaluate_data = CustomDataset(eval_label_file, eval_data_file)
+    evaluation_generator = DataLoader(evaluate_data, batch_size=evaluate_data.__len__())
+    criterion = torch.nn.CrossEntropyLoss()
+    softmax_l = torch.nn.LogSoftmax(dim=1)
+    with torch.set_grad_enabled(False):
+        for data, labels in evaluation_generator:
+            data = data[:, :, :,data_cut_front:data_cut_back].float()
+            labels = labels.long()
+            outputs = model(data)
+            outputs = softmax_l(outputs)
+            e_loss = criterion(outputs, labels)
+            calcs = torch.argmax(outputs, dim=1)
+            diff_l = [0 if calcs[i] == labels[i] else 1 for i in range(len(labels))]
+            diff_s = sum(diff_l)
+            eval_c_1 = sum(labels)
+            mae = diff_s / len(diff_l)
+            eval_acc = 1 - mae
+            chance_acc = eval_c_1/len(labels)
+            eval_kappa = (eval_acc - chance_acc) / (1-chance_acc)
+            print(f'Eval Loss: {e_loss:.6f} \t Eval Acc: {eval_acc} \t Eval C1: {eval_c_1} \t Evak kappa: {eval_kappa}')
+
+    return e_loss, eval_acc, eval_kappa
 
 def run_binary_classification(
         batch_size, shuffle, workers, max_epochs,
@@ -96,10 +124,11 @@ def run_binary_classification(
             min_valid_loss = val_loss / len(validation_generator)
             # save model
             if save_model:
-                torch.save(model.state_dict(), model_name)
+                torch.save(model.state_dict(), f'{model_name}.pth')
                 best_val_epoch = epoch
 
         #        loss = criterion(outputs, local_labels)
+    model.eval()
     with torch.set_grad_enabled(False):
         for data, labels in evaluation_generator:
             data = data[:, :, :,data_cut_front:data_cut_back].float()
@@ -119,8 +148,6 @@ def run_binary_classification(
 
     y = range(max_epochs)
 
-    [statistics[i][0] for i in range(len(statistics))]
-
     #plt.plot(y, [statistics[i][0] for i in range(len(statistics))], label='train_loss')
     #plt.plot(y, [statistics[i][1] for i in range(len(statistics))], label='train_acc')
     #plt.plot(y, [statistics[i][2] for i in range(len(statistics))], label='val_loss')
@@ -128,4 +155,4 @@ def run_binary_classification(
     #plt.legend()
     #plt.show()
     #print("Honey")
-    return e_loss, eval_acc, eval_kappa, best_val_epoch
+    return statistics, e_loss, eval_acc, eval_kappa, best_val_epoch
