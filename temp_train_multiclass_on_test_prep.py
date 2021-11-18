@@ -12,14 +12,14 @@ params = {'batch_size': 8,
           'num_workers': 3}
 max_epochs = 100
 
-train_data_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01T_Prep_train_data.npy'
-train_label_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01T_Prep_train_labels.npy'
+train_data_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01T_Prep_whole_train_data.npy'
+train_label_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01T_Prep_whole_train_labels.npy'
 
-val_data_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01T_Prep_validate_data.npy'
-val_label_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01T_Prep_validate_labels.npy'
+val_data_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01T_Prep_whole_validate_data.npy'
+val_label_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01T_Prep_whole_validate_labels.npy'
 
-eval_data_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01E_7_30_class1_CWT.npy'
-eval_label_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01E_7_30_Features_class1_labels.npy'
+eval_data_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01E_Prep_whole_set.npy'
+eval_label_file = '/home/merlinsewina/MaWork/SnnVsAnn/prep/A01E_Prep_whole_labels.npy'
 
 training_data = CustomDataset(train_label_file, train_data_file)
 validate_data = CustomDataset(val_label_file, val_data_file)
@@ -30,15 +30,16 @@ validation_generator = DataLoader(validate_data, **params)
 evaluation_generator = DataLoader(evaluate_data, batch_size=evaluate_data.__len__())
 
 
-model = BaseSCNN(channels=8, base_filters=8, classes=2, image_height=44, dropout_value=0.5).to('cpu')
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+model = BaseSCNN(channels=32, base_filters=8, classes=4, image_height=44, dropout_value=0.3).to('cpu')
+optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 criterion = torch.nn.CrossEntropyLoss()
 
 running_train_loss = 0.0
 running_val_loss = 0.0
 softmax_l = torch.nn.LogSoftmax(dim=1)
 min_valid_loss = np.inf
-
+save = False
+model_name = 'someModelname.pth'
 
 statistics = []
 
@@ -49,6 +50,7 @@ for epoch in range(max_epochs):
     for data, labels in training_generator:
         data = data[:,:,:,:200].float()
         labels = labels.long()
+        labels = labels - 1
         optimizer.zero_grad()
         outputs = model(data)
         outputs = softmax_l(outputs)
@@ -71,6 +73,7 @@ for epoch in range(max_epochs):
         for data, labels in validation_generator:
             data = data[:, :, :, :200].float()
             labels = labels.long()
+            labels = labels - 1
             outputs = model(data)
             outputs = softmax_l(outputs)
             v_loss = criterion(outputs, labels)
@@ -81,29 +84,33 @@ for epoch in range(max_epochs):
             val_mae_acc += sum(diff_l)
     l = len(validation_generator) * params['batch_size']
     val_mae_acc = 1 - (val_mae_acc/l)
-#    print(f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(training_generator)} \t Training Acc: {train_mae_acc} \t\t Validation Loss: { val_loss / len(validation_generator)} \t Validation Acc: {val_mae_acc}')
+    print(f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(training_generator)} \t Training Acc: {train_mae_acc} \t\t Validation Loss: { val_loss / len(validation_generator)} \t Validation Acc: {val_mae_acc}')
     statistics.append([train_loss / len(training_generator),train_mae_acc,val_loss / len(validation_generator),val_mae_acc])
     if min_valid_loss > val_loss / len(validation_generator):
         print(f'Validation Loss Decreased({min_valid_loss:.6f}--->{val_loss / len(validation_generator):.6f}')
         min_valid_loss = val_loss / len(validation_generator)
+        if save:
+            torch.save(model.state_dict(), model_name)
 
     #        loss = criterion(outputs, local_labels)
 with torch.set_grad_enabled(False):
     for data, labels in evaluation_generator:
         data = data[:, :, :, :200].float()
         labels = labels.long()
+        labels = labels - 1
         outputs = model(data)
         outputs = softmax_l(outputs)
         e_loss = criterion(outputs, labels)
         calcs = torch.argmax(outputs, dim=1)
         diff_l = [0 if calcs[i] == labels[i] else 1 for i in range(len(labels))]
         diff_s = sum(diff_l)
-        eval_c_1 = sum(labels)
         mae = diff_s / len(diff_l)
         eval_acc = 1 - mae
-        chance_acc = eval_c_1/len(labels)
+        chance_acc = 0.25
         eval_kappa = (eval_acc - chance_acc) / (1-chance_acc)
-        print(f'Eval Loss: {e_loss:.6f} \t Eval Acc: {eval_acc} \t Eval C1: {eval_c_1} \t Evak kappa: {eval_kappa}')
+        print(f'Eval Loss: {e_loss:.6f} \t Eval Acc: {eval_acc} \t  Eval kappa: {eval_kappa}')
+
+
 
 y = range(max_epochs)
 

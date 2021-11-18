@@ -31,7 +31,7 @@ evaluation_generator = DataLoader(evaluate_data, batch_size=evaluate_data.__len_
 
 
 model = BaseSCNN(channels=8, base_filters=8, classes=2, image_height=44, dropout_value=0.5).to('cpu')
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 criterion = torch.nn.CrossEntropyLoss()
 
 running_train_loss = 0.0
@@ -81,7 +81,7 @@ for epoch in range(max_epochs):
             val_mae_acc += sum(diff_l)
     l = len(validation_generator) * params['batch_size']
     val_mae_acc = 1 - (val_mae_acc/l)
-#    print(f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(training_generator)} \t Training Acc: {train_mae_acc} \t\t Validation Loss: { val_loss / len(validation_generator)} \t Validation Acc: {val_mae_acc}')
+    print(f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(training_generator)} \t Training Acc: {train_mae_acc} \t\t Validation Loss: { val_loss / len(validation_generator)} \t Validation Acc: {val_mae_acc}')
     statistics.append([train_loss / len(training_generator),train_mae_acc,val_loss / len(validation_generator),val_mae_acc])
     if min_valid_loss > val_loss / len(validation_generator):
         print(f'Validation Loss Decreased({min_valid_loss:.6f}--->{val_loss / len(validation_generator):.6f}')
