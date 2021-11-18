@@ -8,7 +8,7 @@ class DataSplitter():
         self.ratio = ratio
         self.target_path = target_path
 
-    # just randomly split
+    # just randomly split (binary and multiclass)
     def __split_random(self):
         idxs = [i for i in range(len(self.labels))]
         idxs = np.random.permutation(idxs)
@@ -27,12 +27,35 @@ class DataSplitter():
         np.save(f'{self.target_path}_validate_data.npy', validate_data)
         np.save(f'{self.target_path}_validate_labels.npy', validate_labels)
 
-    # make sure that for train and val, ratio of classes stays the same
+    # make sure that for train and val, ratio of classes stays the same (binary and multi class)
+    # TODO
     def __split_balanced(self):
-        # TODO
-        pass
+        class_count = len(list(set(self.labels)))
+        all_train_data = []
+        all_validate_date = []
+        for class_nr in range(class_count):
+            # get all labels
+            class_idx = [i for i in range(len(self.labels)) if self.labels[i] == class_nr+1]
+            class_idx = np.random.permutation(class_idx)
+            # split the labels into ratio
+            cutoff = floor(len(class_idx) * self.ratio)
+            # append to train and val sets for data and labels
+            all_train_data.extend(class_idx[:cutoff])
+            all_validate_date.extend(class_idx[cutoff:])
 
-    # makes sure that there 50/50 in train and val per class via copy of smaller class samples
+        # combine all train and val sets for data and labels
+        train_data = self.dataset[all_train_data]
+        train_labels = self.labels[all_train_data]
+
+        val_data = self.dataset[all_validate_date]
+        val_labels = self.labels[all_validate_date]
+        # save
+        np.save(f'{self.target_path}_train_data.npy', train_data)
+        np.save(f'{self.target_path}_train_labels.npy', train_labels)
+        np.save(f'{self.target_path}_validate_data.npy', val_data)
+        np.save(f'{self.target_path}_validate_labels.npy', val_labels)
+
+    # makes sure that there 50/50 in train and val per class via copy of smaller class samples (only for binary sets)
     def __split_balanced_copy(self):
         # get label indexes of class 1
         class_1_idx = [i for i in range(len(self.labels)) if self.labels[i] == 1]
