@@ -6,21 +6,21 @@ from normalize_feature_extraction import apply_normlized_feature_extraction
 from apply_CWT import apply_cwt
 from Scripts.binary_class_ann_run import run_binary_classification, load_and_run_eval
 import shutil
-import os
+import os, sys
 import json
 
-def main():
+def main(experiment_name, experiment_description, train_file_name, eval_file_name, eval_label_file_name):
     file_directory = os.path.dirname(os.path.abspath(__file__))
     base_save_path = os.path.join(file_directory, 'temp/')
 
     # Create temp folder if not exists
     create_temp_folder(file_directory)
 
-    experiment_name = 'Binary_ANN_A01'
-    experiment_description = 'Something Something'
-    train_file_name = 'A01T.gdf'
-    eval_file_name = 'A01E.gdf'
-    eval_label_file_name = 'A01E_labels.npy'
+    experiment_name = experiment_name #'Binary_ANN_A01'
+    experiment_description = experiment_description# 'Something Something'
+    train_file_name = train_file_name# 'A01T.gdf'
+    eval_file_name = eval_file_name# 'A01E.gdf'
+    eval_label_file_name = eval_label_file_name#'A01E_labels.npy'
 
     base_file_path = '/home/merlinsewina/MaWork/SnnVsAnn/original_data/Datasets/BCICompetitionIV/Data/BCICIV_2a_gdf/'
 
@@ -160,6 +160,5 @@ def main():
     # Delete the temp Folder
     delete_temp_folder(file_directory)
 
-
 if __name__ == "__main__":
-    main()
+	main(*sys.argv[1:])
