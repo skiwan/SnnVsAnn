@@ -1,4 +1,4 @@
-from run_basic_training_multi import main as run_training
+from run_basic_training_multi_gdf import main as run_training
 
 
 if __name__ == '__main__':
