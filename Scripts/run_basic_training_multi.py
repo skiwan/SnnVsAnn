@@ -1,10 +1,11 @@
+from Models.data_combiner import DataCombiner
 from Models.data_splitter import DataSplitter
 from Utils import create_temp_folder, delete_temp_folder, create_folder_if_not_exists
 from load_eeg_from_GDF import load_eeg_from_gdf
 from apply_CSP import apply_csp
 from normalize_feature_extraction import apply_normlized_feature_extraction
 from apply_CWT import apply_cwt
-from Scripts.binary_class_ann_run import run_binary_classification, load_and_run_eval
+from Scripts.multi_class_ann_run import run_multiclass_classification, load_and_run_eval
 import shutil
 import os, sys
 import json
@@ -33,13 +34,13 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     scale_1 = [7,15,0.5]
     scale_2 = [16,30,0.5]
     split_ratio = 0.7
-    splitting_strategy = 'balanced-copy'
+    splitting_strategy = 'balanced'
     batch_size = 8
     shuffle = True
     workers = 3
     max_epochs = 100
-    model_channels = 8
-    model_classes = 2
+    model_channels = 32
+    model_classes = 4
     model_dropout = 0.3
     model_learning_rate = 0.001
     model_weight_decay = 0.0001
@@ -56,7 +57,7 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     ## Save parameters, input settings and experiment description in script string
     experiment_setup_info = {'Experiment_Name': experiment_name}
     experiment_setup_info['Description'] = experiment_description
-    experiment_setup_info['Experiment Type'] = 'One-vs-Rest'
+    experiment_setup_info['Experiment Type'] = 'Multiclass'
     experiment_setup_info['Base_Train_file'] = train_file_name
     experiment_setup_info['Base_Eval_file'] = eval_file_name
     experiment_setup_info['Base_Format'] = 'GDF'
@@ -93,6 +94,8 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
               low_pass, high_pass)
 
     # for each of the datasets
+    train_dataset_paths = []
+    eval_datset_paths = []
     for i in range(1,5):
         # apply normalize without extraction in temp folder
         apply_normlized_feature_extraction(f'{base_save_path}csp_train_class{i}.npy', f'{base_save_path}raw_train_labels.npy',
@@ -104,54 +107,66 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
         # apply CWT
         apply_cwt(f'{base_save_path}normalized_train_class{i}.npy', f'{base_save_path}cwt_train_class{i}.npy',
                   scale_1[0], scale_1[1], scale_1[2], scale_2[0], scale_2[1], scale_2[2])
+        train_dataset_paths.append(f'{base_save_path}cwt_train_class{i}.npy')
+
         apply_cwt(f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}cwt_eval_class{i}.npy',
                   scale_1[0], scale_1[1], scale_1[2], scale_2[0], scale_2[1], scale_2[2])
+        eval_datset_paths.append(f'{base_save_path}cwt_eval_class{i}.npy')
 
-        # Prepare Train and Val sets
-        data_splitter = DataSplitter(f'{base_save_path}cwt_train_class{i}.npy', f'{base_save_path}normalized_train_class{i}_labels.npy', f'{base_save_path}_class{i}', split_ratio)
-        data_splitter.split(splitting_strategy)
 
-        # Load binary model script with parameters
-        # Run Training and additionally save best val model as well as its epoch of origin
-        statistics, e_loss, eval_acc, eval_kappa, best_val_epoch = run_binary_classification(
-            batch_size, shuffle, workers, max_epochs,
-            f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy',
-            f'{base_save_path}_class{i}_validate_data.npy', f'{base_save_path}_class{i}_validate_labels.npy',
-            f'{base_save_path}cwt_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy',
-            model_channels, model_classes, model_dropout,
-            model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, f'{base_save_path}{experiment_name}_class{i}_model'
-        )
-        experiment_setup_info[f'Class_{i}_Evaluation_Loss'] = e_loss.item()
-        experiment_setup_info[f'Class_{i}_Evaluation_Accuracy'] = eval_acc
-        experiment_setup_info[f'Class_{i}_Evaluation_Kappa'] = eval_kappa.item()
-        experiment_setup_info[f'Class_{i}_Best_Validation_Epoch'] = best_val_epoch
+    # Combine all 4 subclasses into 1 Dataset
+    data_combiner = DataCombiner(train_dataset_paths, f'{base_save_path}raw_train_labels.npy', f'{base_save_path}_train')
+    data_combiner.combine()
 
-        # Save Training Run Statistics
-        train_statistics = {
-            'epoch' : statistics[:][0]
-            ,'train_loss': statistics[:][1]
-            ,'train_acc': statistics[:][2]
-            ,'val_loss': statistics[:][3]
-            ,'val_acc': statistics[:][4]
-        }
-        ## save statistic of training
-        with open(f'{destination_path}train_statistics_class{i}.json', 'w') as stats_file:
-            json.dump(train_statistics, stats_file)
+    data_combiner = DataCombiner(eval_datset_paths, f'{base_save_path}raw_eval_labels.npy', f'{base_save_path}_eval')
+    data_combiner.combine()
 
-        # If feature extraction is True move filters file
-        if extract_features:
-            shutil.copyfile(f'{base_save_path}normalized_train_filters.npy', f'{destination_path}normalized_train_filters.npy')
+    # Prepare Train and Val sets
+    data_splitter = DataSplitter(f'{base_save_path}_train_whole_set.npy', f'{base_save_path}_train_whole_labels.npy', f'{base_save_path}_whole', split_ratio)
+    data_splitter.split(splitting_strategy)
 
-        # load saved best val model and apply eval set
-        if save_model:
-            e_loss, eval_acc, eval_kappa = load_and_run_eval(
-                f'{base_save_path}{experiment_name}_class{i}_model.pth'
-                , f'{base_save_path}cwt_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
-                ,data_cut_front, data_cut_back, model_channels, model_classes, model_dropout)
-            ## save statistic of eval on best val model
-            experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Loss'] = e_loss.item()
-            experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Accuracy'] = eval_acc
-            experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Kappa'] = eval_kappa.item()
+    # Load binary model script with parameters
+    # Run Training and additionally save best val model as well as its epoch of origin
+    statistics, e_loss, eval_acc, eval_kappa, best_val_epoch = run_multiclass_classification(
+        batch_size, shuffle, workers, max_epochs,
+        f'{base_save_path}_whole_train_data.npy', f'{base_save_path}_whole_train_labels.npy',
+        f'{base_save_path}_whole_validate_data.npy', f'{base_save_path}_whole_validate_labels.npy',
+        f'{base_save_path}_eval_whole_set.npy', f'{base_save_path}_eval_whole_labels.npy',
+        model_channels, model_classes, model_dropout,
+        model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, f'{base_save_path}{experiment_name}_whole_model'
+    )
+    experiment_setup_info[f'Whole_Evaluation_Loss'] = e_loss.item()
+    experiment_setup_info[f'Whole_Evaluation_Accuracy'] = eval_acc
+    experiment_setup_info[f'Whole_Evaluation_Kappa'] = eval_kappa
+    experiment_setup_info[f'Whole_Best_Validation_Epoch'] = best_val_epoch
+
+    # Save Training Run Statistics
+    train_statistics = {
+        'epoch' : statistics[:][0]
+        ,'train_loss': statistics[:][1]
+        ,'train_acc': statistics[:][2]
+        ,'val_loss': statistics[:][3]
+        ,'val_acc': statistics[:][4]
+    }
+    ## save statistic of training
+    with open(f'{destination_path}train_statistics_whole.json', 'w') as stats_file:
+        json.dump(train_statistics, stats_file)
+
+    # If feature extraction is True move filters file
+    #TODO change save name to include xperiment name and class for binary (noth files)
+    if extract_features:
+        shutil.copyfile(f'{base_save_path}normalized_train_filters.npy', f'{destination_path}normalized_train_filters.npy')
+
+    # load saved best val model and apply eval set
+    if save_model:
+        e_loss, eval_acc, eval_kappa = load_and_run_eval(
+            f'{base_save_path}{experiment_name}_whole_model.pth'
+            , f'{base_save_path}_eval_whole_set.npy', f'{base_save_path}_eval_whole_labels.npy'
+            ,data_cut_front, data_cut_back, model_channels, model_classes, model_dropout)
+        ## save statistic of eval on best val model
+        experiment_setup_info[f'Best_Model_Whole_Evaluation_Loss'] = e_loss.item()
+        experiment_setup_info[f'Best_Model_Whole_Evaluation_Accuracy'] = eval_acc
+        experiment_setup_info[f'Best_Model_Whole_Evaluation_Kappa'] = eval_kappa
 
 
     # Save The experiment setup String in Experiments folder

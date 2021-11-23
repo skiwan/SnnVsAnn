@@ -148,6 +148,10 @@ def run_binary_classification(
 
     y = range(max_epochs)
 
+    # save last epoch model
+    torch.save(model.state_dict(), f'{model_name}_last.pth')
+
+
     #plt.plot(y, [statistics[i][0] for i in range(len(statistics))], label='train_loss')
     #plt.plot(y, [statistics[i][1] for i in range(len(statistics))], label='train_acc')
     #plt.plot(y, [statistics[i][2] for i in range(len(statistics))], label='val_loss')

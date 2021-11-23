@@ -28,7 +28,6 @@ class DataSplitter():
         np.save(f'{self.target_path}_validate_labels.npy', validate_labels)
 
     # make sure that for train and val, ratio of classes stays the same (binary and multi class)
-    # TODO
     def __split_balanced(self):
         class_count = len(list(set(self.labels)))
         all_train_data = []
