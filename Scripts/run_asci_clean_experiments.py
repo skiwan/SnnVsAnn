@@ -1,4 +1,4 @@
-from run_basic_training_binary_asci import main as run_training
+from run_basic_training_asci import main as run_training
 
 
 if __name__ == '__main__':
