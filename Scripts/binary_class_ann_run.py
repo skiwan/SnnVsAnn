@@ -7,8 +7,8 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-def load_and_run_eval(model_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, model_dropout):
-    model = BaseSCNN(channels=model_channels, base_filters=8, classes=model_classes, image_height=44, dropout_value=model_dropout).to('cpu')
+def load_and_run_eval(model_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, model_dropout, device):
+    model = BaseSCNN(channels=model_channels, base_filters=8, classes=model_classes, image_height=44, dropout_value=model_dropout).to(device)
     model.load_state_dict(torch.load(model_path))
     model.eval()
     eval_data_file = eval_data_file_path
@@ -20,7 +20,9 @@ def load_and_run_eval(model_path, eval_data_file_path, eval_label_file_path, dat
     with torch.set_grad_enabled(False):
         for data, labels in evaluation_generator:
             data = data[:, :, :,data_cut_front:data_cut_back].float()
+            data = data.to(device)
             labels = labels.long()
+            labels = labels.to(device)
             outputs = model(data)
             outputs = softmax_l(outputs)
             e_loss = criterion(outputs, labels)
@@ -42,7 +44,7 @@ def run_binary_classification(
         val_data_file_path, val_label_file_path,
         eval_data_file_path, eval_label_file_path,
         model_channels, model_classes, model_dropout,
-        model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, model_name
+        model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, model_name, device
 ):
     params = {'batch_size': batch_size,
               'shuffle': shuffle,
@@ -67,7 +69,7 @@ def run_binary_classification(
     evaluation_generator = DataLoader(evaluate_data, batch_size=evaluate_data.__len__())
 
 
-    model = BaseSCNN(channels=model_channels, base_filters=8, classes=model_classes, image_height=44, dropout_value=model_dropout).to('cpu')
+    model = BaseSCNN(channels=model_channels, base_filters=8, classes=model_classes, image_height=44, dropout_value=model_dropout).to(device)
     optimizer = optim.Adam(model.parameters(), lr=model_learning_rate, weight_decay=model_weight_decay)
     criterion = torch.nn.CrossEntropyLoss()
 
@@ -77,6 +79,12 @@ def run_binary_classification(
 
 
     statistics = []
+    epoch_statistics = []
+    train_loss_statistics = []
+    train_acc_statistics = []
+    validation_loss_statistics = []
+    validation_acc_statistics = []
+
 
     for epoch in range(max_epochs):
         train_loss = 0.0
@@ -84,7 +92,9 @@ def run_binary_classification(
         # Training
         for data, labels in training_generator:
             data = data[:,:,:,data_cut_front:data_cut_back].float()
+            data = data.to(device)
             labels = labels.long()
+            labels = labels.to(device)
             optimizer.zero_grad()
             outputs = model(data)
             outputs = softmax_l(outputs)
@@ -106,7 +116,9 @@ def run_binary_classification(
         with torch.set_grad_enabled(False):
             for data, labels in validation_generator:
                 data = data[:, :, :,data_cut_front:data_cut_back].float()
+                data = data.to(device)
                 labels = labels.long()
+                labels = labels.to(device)
                 outputs = model(data)
                 outputs = softmax_l(outputs)
                 v_loss = criterion(outputs, labels)
@@ -118,7 +130,11 @@ def run_binary_classification(
         l = len(validation_generator) * params['batch_size']
         val_mae_acc = 1 - (val_mae_acc/l)
         print(f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(training_generator)} \t Training Acc: {train_mae_acc} \t\t Validation Loss: { val_loss / len(validation_generator)} \t Validation Acc: {val_mae_acc}')
-        statistics.append([epoch, train_loss / len(training_generator),train_mae_acc,val_loss / len(validation_generator),val_mae_acc])
+        epoch_statistics.append(epoch)
+        train_loss_statistics.append(train_loss / len(training_generator))
+        train_acc_statistics.append(train_mae_acc)
+        validation_loss_statistics.append(val_loss / len(validation_generator))
+        validation_acc_statistics.append(val_mae_acc)
         if min_valid_loss > val_loss / len(validation_generator):
             print(f'Validation Loss Decreased({min_valid_loss:.6f}--->{val_loss / len(validation_generator):.6f}')
             min_valid_loss = val_loss / len(validation_generator)
@@ -132,7 +148,9 @@ def run_binary_classification(
     with torch.set_grad_enabled(False):
         for data, labels in evaluation_generator:
             data = data[:, :, :,data_cut_front:data_cut_back].float()
+            data = data.to(device)
             labels = labels.long()
+            labels = labels.to(device)
             outputs = model(data)
             outputs = softmax_l(outputs)
             e_loss = criterion(outputs, labels)
@@ -159,4 +177,5 @@ def run_binary_classification(
     #plt.legend()
     #plt.show()
     #print("Honey")
+    statistics = [epoch_statistics,train_loss_statistics, train_acc_statistics ,validation_loss_statistics, validation_acc_statistics]
     return statistics, e_loss, eval_acc, eval_kappa, best_val_epoch

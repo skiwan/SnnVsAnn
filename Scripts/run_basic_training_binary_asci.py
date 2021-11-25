@@ -38,7 +38,7 @@ def generate_train_and_eval_labels(label_path, train_idx, eval_idx, save_path):
     np.save(f'{save_path}raw_eval_labels.npy', eval_labels)
 
 
-def main(experiment_name, experiment_description, subject_name= 'k3b', subject_nr='1'):
+def main(experiment_name, experiment_description, subject_name= 'k3b', subject_nr='1', device='cuda'):
     file_directory = os.path.dirname(os.path.abspath(__file__))
     base_save_path = os.path.join(file_directory, 'temp/')
 
@@ -73,7 +73,7 @@ def main(experiment_name, experiment_description, subject_name= 'k3b', subject_n
     model_classes = 2
     model_dropout = 0.3
     model_learning_rate = 0.001
-    model_weight_decay = 0.0001
+    model_weight_decay = 0.1
     data_cut_front = 50
     data_cut_back = 250
     save_model = True
@@ -159,7 +159,7 @@ def main(experiment_name, experiment_description, subject_name= 'k3b', subject_n
             f'{base_save_path}_class{i}_validate_data.npy', f'{base_save_path}_class{i}_validate_labels.npy',
             f'{base_save_path}cwt_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy',
             model_channels, model_classes, model_dropout,
-            model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, f'{base_save_path}{experiment_name}_class{i}_model'
+            model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, f'{base_save_path}{experiment_name}_class{i}_model', device
         )
         experiment_setup_info[f'Class_{i}_Evaluation_Loss'] = e_loss.item()
         experiment_setup_info[f'Class_{i}_Evaluation_Accuracy'] = eval_acc
@@ -168,11 +168,11 @@ def main(experiment_name, experiment_description, subject_name= 'k3b', subject_n
 
         # Save Training Run Statistics
         train_statistics = {
-            'epoch' : statistics[:][0]
-            ,'train_loss': statistics[:][1]
-            ,'train_acc': statistics[:][2]
-            ,'val_loss': statistics[:][3]
-            ,'val_acc': statistics[:][4]
+            'epoch': statistics[0]
+            , 'train_loss': statistics[1]
+            , 'train_acc': statistics[2]
+            , 'val_loss': statistics[3]
+            , 'val_acc': statistics[4]
         }
         ## save statistic of training
         with open(f'{destination_path}train_statistics_class{i}.json', 'w') as stats_file:
@@ -187,7 +187,7 @@ def main(experiment_name, experiment_description, subject_name= 'k3b', subject_n
             e_loss, eval_acc, eval_kappa = load_and_run_eval(
                 f'{base_save_path}{experiment_name}_class{i}_model.pth'
                 , f'{base_save_path}cwt_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
-                ,data_cut_front, data_cut_back, model_channels, model_classes, model_dropout)
+                ,data_cut_front, data_cut_back, model_channels, model_classes, model_dropout, device)
             ## save statistic of eval on best val model
             experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Loss'] = e_loss.item()
             experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Accuracy'] = eval_acc
