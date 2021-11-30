@@ -5,11 +5,14 @@ from apply_CSP import apply_csp
 from normalize_feature_extraction import apply_normlized_feature_extraction
 from apply_CWT import apply_cwt
 from Scripts.binary_class_ann_run import run_binary_classification, load_and_run_eval
+from Scripts.multi_class_ann_run import main as multiclass_run
 import shutil
 import os, sys
 import json
 
-def main(experiment_name, experiment_description, train_file_name, eval_file_name, eval_label_file_name, device='cuda'):
+def main(experiment_name, experiment_description, train_file_name, eval_file_name, eval_label_file_name,
+         learning_rate, weight_decay, cut_off_front, cut_off_back, dropout,
+         device='cuda'):
     file_directory = os.path.dirname(os.path.abspath(__file__))
     base_save_path = os.path.join(file_directory, 'temp/')
 
@@ -40,13 +43,16 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     max_epochs = 100
     model_channels = 8
     model_classes = 2
-    model_dropout = 0.3
-    model_learning_rate = 0.001
-    model_weight_decay = 0.0001
-    data_cut_front = 50
-    data_cut_back = 250
+    model_dropout = dropout
+    model_learning_rate = learning_rate
+    model_weight_decay = weight_decay
+    data_cut_front = cut_off_front
+    data_cut_back = cut_off_back
     save_model = True
 
+
+    # Potential HyperParams
+    # Learninr Rate, Weight Decay, Data Cutoff, OPtimisier, Dropout
 
     destination_path = os.path.join(file_directory, 'Experiments')
     destination_path = os.path.join(destination_path, f'{experiment_name}')
@@ -153,12 +159,20 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
             experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Accuracy'] = eval_acc
             experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Kappa'] = eval_kappa.item()
 
+    # call the multiclass function on all 4 models
+    best_acc, best_kappa, last_acc, last_kappa = multiclass_run(base_save_path, experiment_name, 4
+         ,data_cut_front, data_cut_back, model_channels, model_classes, model_dropout, 'cpu')
+    experiment_setup_info[f'MultiClass_Best_Evaluation_Accuracy'] = best_acc
+    experiment_setup_info[f'MultiClass_Best_Evaluation_Kappa'] = best_kappa
+    experiment_setup_info[f'MultiClass_Last_Evaluation_Accuracy'] = last_acc
+    experiment_setup_info[f'MultiClass_Last_Evaluation_Kappa'] = last_kappa
 
     # Save The experiment setup String in Experiments folder
     with open(f'{destination_path}experiment_description.json', 'w') as exp_file:
         json.dump(experiment_setup_info, exp_file)
     # Delete the temp Folder
     delete_temp_folder(file_directory)
+    return best_acc, last_acc
 
 if __name__ == "__main__":
 	main(*sys.argv[1:])
