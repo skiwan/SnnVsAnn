@@ -69,8 +69,8 @@ def main(base_path, base_model_name, class_amount
 
     best_models_labels = [torch.argmax(best_models_convidence[i], dim=0) for i in range(len(best_models_convidence))]
     last_models_labels = [torch.argmax(last_models_convidence[i], dim=0) for i in range(len(last_models_convidence))]
-    diff_b = [0 if best_models_labels[i] == eval_labels[i] else 1 for i in range(len(eval_labels))]
-    diff_l = [0 if last_models_labels[i] == eval_labels[i] else 1 for i in range(len(eval_labels))]
+    diff_b = [1 if best_models_labels[i] == eval_labels[i] else 0 for i in range(len(eval_labels))]
+    diff_l = [1 if last_models_labels[i] == eval_labels[i] else 0 for i in range(len(eval_labels))]
     diff_b_s = sum(diff_b)
     diff_l_s = sum(diff_l)
 

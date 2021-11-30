@@ -167,6 +167,8 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     experiment_setup_info[f'MultiClass_Last_Evaluation_Accuracy'] = last_acc
     experiment_setup_info[f'MultiClass_Last_Evaluation_Kappa'] = last_kappa
 
+    print(f'Multiclass Accuarcy best: {best_acc}, last: {last_acc}')
+
     # Save The experiment setup String in Experiments folder
     with open(f'{destination_path}experiment_description.json', 'w') as exp_file:
         json.dump(experiment_setup_info, exp_file)
