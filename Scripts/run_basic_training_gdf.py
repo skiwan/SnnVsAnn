@@ -14,6 +14,7 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
          learning_rate, weight_decay, cut_off_front, cut_off_back, dropout,
          device='cuda'):
     file_directory = os.path.dirname(os.path.abspath(__file__))
+    parent_folder = os.path.dirname(file_directory)
     base_save_path = os.path.join(file_directory, 'temp/')
 
     # Create temp folder if not exists
@@ -25,9 +26,9 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     eval_file_name = eval_file_name# 'A01E.gdf'
     eval_label_file_name = eval_label_file_name#'A01E_labels.npy'
 
-    base_file_path = '/home/merlinsewina/MaWork/SnnVsAnn/original_data/Datasets/BCICompetitionIV/Data/BCICIV_2a_gdf/'
+    base_file_path = os.path.join(parent_folder, 'original_data/Datasets/BCICompetitionIV/Data/BCICIV_2a_gdf/')
+    base_label_path = os.path.join(parent_folder, 'savecopywithlabels/')
 
-    base_label_path = '/home/merlinsewina/MaWork/SnnVsAnn/savecopywithlabels/'
     low_pass = 7
     high_pass = 30
     raw_train_file_name = os.path.join(base_file_path, train_file_name)

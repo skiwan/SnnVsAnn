@@ -43,6 +43,7 @@ def generate_train_and_eval_labels(label_path, train_idx, eval_idx, save_path):
 def main(experiment_name, experiment_description, learning_rate, weight_decay, cut_off_front, cut_off_back, dropout,
          subject_name= 'k3b', subject_nr='1', device='cuda'):
     file_directory = os.path.dirname(os.path.abspath(__file__))
+    parent_folder = os.path.dirname(file_directory)
     base_save_path = os.path.join(file_directory, 'temp/')
 
     # Create temp folder if not exists
@@ -51,8 +52,9 @@ def main(experiment_name, experiment_description, learning_rate, weight_decay, c
     experiment_name = experiment_name #'Binary_ANN_A01'
     experiment_description = experiment_description# 'Something Something'
 
-    base_file_path = '/home/merlinsewina/MaWork/SnnVsAnn/original_data/Datasets/BCICompetitionIII/Data/'
-    base_label_path = '/home/merlinsewina/MaWork/SnnVsAnn/savecopywithlabels/'
+
+    base_file_path = os.path.join(parent_folder, 'original_data/Datasets/BCICompetitionIII/Data/')
+    base_label_path = os.path.join(parent_folder, 'savecopywithlabels/')
     subject_folder = os.path.join(base_file_path, f'BCIIII_DataSetIIIa-Sub_{subject_nr}_{subject_name}_ascii')
 
     train_file_name = os.path.join(subject_folder, f'{subject_name}_s.txt')
