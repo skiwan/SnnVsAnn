@@ -38,9 +38,9 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     scale_2 = [16,30,0.5]
     split_ratio = 0.7
     splitting_strategy = 'balanced-copy'
-    batch_size = 8
+    batch_size = 32
     shuffle = True
-    workers = 3
+    workers = 10
     max_epochs = 100
     model_channels = 8
     model_classes = 2
