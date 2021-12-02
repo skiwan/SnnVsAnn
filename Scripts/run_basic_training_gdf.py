@@ -12,7 +12,7 @@ import json
 
 def main(experiment_name, experiment_description, train_file_name, eval_file_name, eval_label_file_name,
          learning_rate, weight_decay, cut_off_front, cut_off_back, dropout,
-         device='cuda'):
+         result_collector={}, experiment_number=0 ,device='cuda'):
     file_directory = os.path.dirname(os.path.abspath(__file__))
     parent_folder = os.path.dirname(file_directory)
     base_save_path = os.path.join(file_directory, 'temp/')
@@ -175,6 +175,8 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
         json.dump(experiment_setup_info, exp_file)
     # Delete the temp Folder
     delete_temp_folder(file_directory)
+    result_collector[experiment_number]['best_acc'] = best_acc
+    result_collector[experiment_number]['last_acc'] = last_acc
     return best_acc, last_acc
 
 if __name__ == "__main__":

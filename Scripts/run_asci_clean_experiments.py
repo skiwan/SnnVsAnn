@@ -65,7 +65,7 @@ def main(start_expriment_nr=0,max_gpus=1, process_per_gpu=1, subject_experiments
             params['best_accuracy_multi'] = overall_best_accuracy[i // subject_experiments_amount]
             print(f'New best Config Found for subject {i // subject_experiments_amount}')
             print(params)
-            best_params[i // subject_experiments_amount] = [f'ANN_{s[0]}', params]
+            best_params[i // subject_experiments_amount] = [f'ANN_{subjects[i // subject_experiments_amount][0]}', params]
 
 
     with open('ANN_ASCI_HyperResults.txt', 'w+') as final_file:
