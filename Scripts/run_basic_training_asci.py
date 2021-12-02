@@ -41,7 +41,7 @@ def generate_train_and_eval_labels(label_path, train_idx, eval_idx, save_path):
 
 
 def main(experiment_name, experiment_description, learning_rate, weight_decay, cut_off_front, cut_off_back, dropout,
-         subject_name= 'k3b', subject_nr='1', device='cuda'):
+         subject_name= 'k3b', subject_nr='1',result_collector={}, experiment_number=0 ,device='cuda'):
     file_directory = os.path.dirname(os.path.abspath(__file__))
     parent_folder = os.path.dirname(file_directory)
     base_save_path = os.path.join(file_directory, 'temp/')
@@ -214,6 +214,8 @@ def main(experiment_name, experiment_description, learning_rate, weight_decay, c
         json.dump(experiment_setup_info, exp_file)
     # Delete the temp Folder
     delete_temp_folder(file_directory)
+    result_collector[experiment_number]['best_acc'] = best_acc
+    result_collector[experiment_number]['last_acc'] = last_acc
     return best_acc, last_acc
 
 if __name__ == "__main__":
