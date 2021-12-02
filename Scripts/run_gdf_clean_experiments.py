@@ -14,6 +14,11 @@ total_experiments_amount = subject_experiments_amount * len(nr)
 
 
 def main(start_expriment_nr=0,max_gpus=1, process_per_gpu=1, subject_experiments_amount=subject_experiments_amount, total_experiments_amount=total_experiments_amount):
+    start_expriment_nr = int(start_expriment_nr)
+    max_gpus = int(max_gpus)
+    process_per_gpu=int(process_per_gpu)
+
+
     current_experiment_nr = start_expriment_nr
     max_threads = max_gpus * process_per_gpu
     current_threads = []
