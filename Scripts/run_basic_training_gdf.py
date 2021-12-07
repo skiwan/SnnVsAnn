@@ -144,7 +144,7 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     splitting_strategy = 'balanced-copy'
     batch_size = 32
     shuffle = True
-    workers = 10
+    workers = 4
     max_epochs = 100
     model_channels = 8
     model_classes = 2
