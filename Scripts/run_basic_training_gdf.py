@@ -1,5 +1,5 @@
 from Models.data_splitter import DataSplitter
-from Utils import create_temp_folder, delete_temp_folder, create_folder_if_not_exists
+from Utils import create_temp_folder, delete_temp_folder, create_folder_if_not_exists, delete_folder
 from load_eeg_from_GDF import load_eeg_from_gdf
 from apply_CSP import apply_csp
 from normalize_feature_extraction import apply_normlized_feature_extraction
@@ -198,6 +198,8 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     overall_best_accuracy = -math.inf
     best_params = {}
 
+    temp_folders = set()
+
     while current_experiment_nr < subject_experiments_amount:
         if len(current_threads) < max_threads:
             experiment_setup_info = {}
@@ -212,8 +214,15 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
             cut_off_back = cut_off[1]
 
             device = f'cuda:{len(current_threads) // process_per_gpu}'
+            thread_nr = current_threads % process_per_gpu
 
-            current_threads.append(threading.Thread(target=run_threaded_model, args=(base_save_path, batch_size, cut_off_back,
+            # copy temp folder into temp_device
+            new_base_s_path = os.path.join(file_directory, f'temp_{device}_{thread_nr}/')
+            temp_folders.add(new_base_s_path)
+            shutil.copytree(base_save_path, new_base_s_path)
+            # change base save folder
+
+            current_threads.append(threading.Thread(target=run_threaded_model, args=(new_base_s_path, batch_size, cut_off_back,
                                                                            cut_off_front, device, dropout,
                                                                            eval_file_name, experiment_description,
                                                                            experiment_name, experiment_number,
@@ -245,6 +254,8 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
 
     # Delete the temp Folder
     delete_temp_folder(file_directory)
+    for f in temp_folders:
+        delete_folder(f)
     return best_params
 
 

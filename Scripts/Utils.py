@@ -13,3 +13,7 @@ def delete_temp_folder(base_folder):
     temp_path = os.path.join(base_folder, 'temp')
     if os.path.exists(temp_path):
         shutil.rmtree(temp_path)
+
+def delete_folder(folder_dir):
+    if os.path.exists(folder_dir):
+        shutil.rmtree(folder_dir)
