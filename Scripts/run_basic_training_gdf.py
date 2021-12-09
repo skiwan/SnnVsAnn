@@ -138,7 +138,6 @@ def run_threaded_model(config):
             json.dump(experiment_setup_info, exp_file)
         overall_best_acc = max(best_acc, last_acc)
         tune.report(mean_accuracy=overall_best_acc)
-        tune.
         return best_acc, experiment_setup_info, last_acc
     except Exception as e:
         logging.exception('HELP> RUN INTO AN ERROR') # log exception info at CRITICAL log level
