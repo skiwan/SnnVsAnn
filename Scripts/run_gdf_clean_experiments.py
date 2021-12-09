@@ -11,7 +11,7 @@ dropouts = [0.1,0.3,0.5,0.7]
 nr = ['01', '02', '03', '05', '06', '07', '08', '09']
 
 
-def main(start_expriment_nr=797,max_gpus=1, process_per_gpu=1):
+def main(start_expriment_nr=0,max_gpus=1, process_per_gpu=1):
     start_expriment_nr = int(start_expriment_nr)
     max_gpus = int(max_gpus)
     process_per_gpu=int(process_per_gpu)
