@@ -31,7 +31,7 @@ def main(start_expriment_nr=0,max_gpus=1, process_per_gpu=1):
                                      train_file_name, eval_file_name, eval_label_file_name,
                                      learning_rates, weight_decays, cut_offs,
                                      dropouts,
-                                     result_collector, start_expriment_nr, device, max_gpus, process_per_gpu)
+                                     start_expriment_nr, device, max_gpus, process_per_gpu)
 
         best_params[i] = best_params_s
 

@@ -11,24 +11,46 @@ import os, sys
 import json
 import math
 import threading
+from ray import tune
+from ray.tune.suggest.hyperopt import HyperOptSearch
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
-def run_threaded_model(base_save_path, batch_size, cut_off_back, cut_off_front, device, dropout, eval_file_name,
-                       experiment_description, experiment_name, experiment_number, experiment_setup_info,
-                       extract_features, file_directory, high_pass, learning_rate, low_pass, max_epochs, model_channels,
-                       model_classes, result_collector, scale_1, scale_2, shuffle, split_ratio, splitting_strategy,
-                       train_file_name, weight_decay, workers):
+def run_threaded_model(config):
     try:
-        result_collector[experiment_number] = {}
+        base_save_path = config['base_save_path']
+        batch_size = config['batch_size']
+        cut_off = config['cut_off']
+        device = config['device']
+        dropout = config['dropout']
+        eval_file_name = config['eval_file_name']
+        experiment_description = config['experiment_description']
+        experiment_name = config['experiment_name']
+        extract_features = config['extract_features']
+        file_directory = config['file_directory']
+        high_pass = config['high_pass']
+        learning_rate = config['learning_rate']
+        low_pass = config['low_pass']
+        max_epochs = config['max_epochs']
+        model_channels = config['model_channels']
+        model_classes = config['model_classes']
+        scale_1 = config['scale_1']
+        scale_2 = config['scale_2']
+        shuffle = config['shuffle']
+        split_ratio = config['split_ratio']
+        splitting_strategy = config['splitting_strategy']
+        train_file_name = config['train_file_name']
+        weight_decay = config['weight_decay']
+        workers = config['workers']
+
         model_dropout = dropout
         model_learning_rate = learning_rate
         model_weight_decay = weight_decay
-        data_cut_front = cut_off_front
-        data_cut_back = cut_off_back
-        experiment_name = f'{experiment_name}_learnrate{learning_rate}_weightdec{weight_decay}_cutoff{cut_off_front}_{cut_off_back}_drop{dropout}'
+        data_cut_front = cut_off[0]
+        data_cut_back = cut_off[1]
+        experiment_name = f'{experiment_name}_learnrate{learning_rate}_weightdec{weight_decay}_cutoff{data_cut_front}_{data_cut_back}_drop{dropout}'
         save_model = True
         destination_path = os.path.join(file_directory, 'Experiments')
         destination_path = os.path.join(destination_path, f'{experiment_name}')
@@ -114,9 +136,9 @@ def run_threaded_model(base_save_path, batch_size, cut_off_back, cut_off_front, 
         # Save The experiment setup String in Experiments folder
         with open(f'{destination_path}experiment_description.json', 'w') as exp_file:
             json.dump(experiment_setup_info, exp_file)
-        result_collector[experiment_number]['best_acc'] = best_acc
-        result_collector[experiment_number]['last_acc'] = last_acc
-        result_collector[experiment_number]['c_params'] = experiment_setup_info
+        overall_best_acc = max(best_acc, last_acc)
+        tune.report(mean_accuracy=overall_best_acc)
+        tune.
         return best_acc, experiment_setup_info, last_acc
     except Exception as e:
         logging.exception('HELP> RUN INTO AN ERROR') # log exception info at CRITICAL log level
@@ -125,7 +147,7 @@ def run_threaded_model(base_save_path, batch_size, cut_off_back, cut_off_front, 
 
 def main(experiment_name, experiment_description, train_file_name, eval_file_name, eval_label_file_name,
          learning_rates, weight_decays, cut_offs, dropouts,
-         result_collector={}, experiment_number=0, device='cuda', max_gpus=1, process_per_gpu=1):
+         experiment_number=0, device='cuda', max_gpus=1, process_per_gpu=1):
     file_directory = os.path.dirname(os.path.abspath(__file__))
     parent_folder = os.path.dirname(file_directory)
     base_save_path = os.path.join(file_directory, 'temp/')
@@ -194,77 +216,48 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     ## DATA PREP END
 
     ## Threaded Model Start
-    subject_experiments_amount = len(learning_rates) * len(weight_decays) * len(cut_offs) * len(dropouts)
-    start_expriment_nr = int(experiment_number)
-    current_experiment_nr = start_expriment_nr
 
     max_gpus = int(max_gpus)
     process_per_gpu=int(process_per_gpu)
 
-    max_threads = max_gpus * process_per_gpu
-    current_threads = []
-    overall_best_accuracy = -math.inf
-    best_params = {}
+    device = 'cuda'
+    ray_config = {
+        'base_save_path': base_save_path,
+        'batch_size': batch_size,
+        'cut_off': tune.grid_search(cut_offs),
+        'device': device,
+        'dropout': tune.grid_search(dropouts),
+        'eval_file_name': eval_file_name,
+        'experiment_description': experiment_description,
+        'experiment_name': experiment_name,
+        'extract_features': extract_features,
+        'file_directory': file_directory,
+        'high_pass': high_pass,
+        'learning_rate': tune.grid_search(learning_rates),
+        'low_pass': low_pass,
+        'max_epochs': max_epochs,
+        'model_channels': model_channels,
+        'model_classes': model_classes,
+        'scale_1': scale_1,
+        'scale_2': scale_2,
+        'shuffle': shuffle,
+        'split_ratio': split_ratio,
+        'splitting_strategy': splitting_strategy,
+        'train_file_name': train_file_name,
+        'weight_decay': tune.grid_search(weight_decays),
+        'workers': workers
+    }
 
-    temp_folders = set()
 
-    while current_experiment_nr < subject_experiments_amount:
-        if len(current_threads) < max_threads:
-            experiment_setup_info = {}
-            learning_rate = learning_rates[
-                current_experiment_nr // (len(cut_offs) * len(dropouts) * len(weight_decays)) % len(
-                    learning_rates)]  # fourth
-            weight_decay = weight_decays[
-                current_experiment_nr // (len(cut_offs) * len(dropouts)) % len(weight_decays)]  # third
-            dropout = dropouts[current_experiment_nr // (len(cut_offs)) % len(dropouts)]  # second
-            cut_off = cut_offs[current_experiment_nr % len(cut_offs)]  # first
-            cut_off_front = cut_off[0]
-            cut_off_back = cut_off[1]
+    analysis = tune.run(
+        run_threaded_model,
+        config=ray_config, resources_per_trial={"gpu": max_gpus / process_per_gpu}, num_samples=1, mode='max', max_concurrent_trials=max_gpus / process_per_gpu)
 
-            device = f'cuda:{len(current_threads) // process_per_gpu}'
-            thread_nr = len(current_threads)  % process_per_gpu
-
-            # copy temp folder into temp_device
-            new_base_s_path = os.path.join(file_directory, f'temp_{device}_{thread_nr}/')
-            temp_folders.add(new_base_s_path)
-            shutil.copytree(base_save_path, new_base_s_path)
-            # change base save folder
-
-            current_threads.append(threading.Thread(target=run_threaded_model, args=(new_base_s_path, batch_size, cut_off_back,
-                                                                           cut_off_front, device, dropout,
-                                                                           eval_file_name, experiment_description,
-                                                                           experiment_name, experiment_number,
-                                                                           experiment_setup_info, extract_features,
-                                                                           file_directory, high_pass, learning_rate,
-                                                                           low_pass, max_epochs, model_channels,
-                                                                           model_classes, result_collector, scale_1,
-                                                                           scale_2, shuffle, split_ratio,
-                                                                           splitting_strategy, train_file_name,
-                                                                           weight_decay, workers)))
-            current_experiment_nr += 1
-        else:
-            for prepared_thread in current_threads:
-                prepared_thread.start()
-            for prepared_thread in current_threads:
-                prepared_thread.join()
-            current_threads = []
-
-    for i, exp_key in enumerate(list(result_collector.keys())):
-        exp_dic = result_collector[exp_key]
-        if exp_dic['best_acc'] > overall_best_accuracy or exp_dic['last_acc'] > overall_best_accuracy:
-            overall_best_accuracy = max(exp_dic['best_acc'], exp_dic['last_acc'])
-            params = exp_dic['c_params']
-            params['best_accuracy_multi'] = overall_best_accuracy
-            print(f'New best Config Found for subject file {train_file_name}')
-            print(params)
-            best_params = params
-    ## Threaded Experiments End
-
+    print("Best config: ", analysis.get_best_config(
+        metric="mean_accuracy", mode="max"))
     # Delete the temp Folder
     delete_temp_folder(file_directory)
-    for f in temp_folders:
-        delete_folder(f)
-    return best_params
+    return ''
 
 
 if __name__ == "__main__":
