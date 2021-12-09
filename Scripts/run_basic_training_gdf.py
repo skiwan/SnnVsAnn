@@ -100,7 +100,7 @@ def run_threaded_model(base_save_path, batch_size, cut_off_back, cut_off_front, 
     # call the multiclass function on all 4 models
     best_acc, best_kappa, last_acc, last_kappa = multiclass_run(base_save_path, experiment_name, 4
                                                                 , data_cut_front, data_cut_back, model_channels,
-                                                                model_classes, model_dropout, device)
+                                                                model_classes, model_dropout, 'cpu')
     experiment_setup_info[f'MultiClass_Best_Evaluation_Accuracy'] = best_acc
     experiment_setup_info[f'MultiClass_Best_Evaluation_Kappa'] = best_kappa
     experiment_setup_info[f'MultiClass_Last_Evaluation_Accuracy'] = last_acc
