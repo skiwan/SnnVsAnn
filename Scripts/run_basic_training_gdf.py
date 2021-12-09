@@ -15,7 +15,7 @@ from ray import tune
 from ray.tune.suggest.hyperopt import HyperOptSearch
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.CRITICAL)
 
 
 def run_threaded_model(config):
@@ -253,11 +253,13 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
         run_threaded_model,
         config=ray_config, resources_per_trial={"gpu": 1/process_per_gpu}, num_samples=1, mode='max', max_concurrent_trials=max_gpus * process_per_gpu)
 
-    print("Best config: ", analysis.get_best_config(
-        metric="mean_accuracy", mode="max"))
+    best_conf = analysis.get_best_config(
+        metric="mean_accuracy", mode="max")
+
+    print("Best config: ", best_conf)
     # Delete the temp Folder
     delete_temp_folder(file_directory)
-    return ''
+    return best_conf
 
 
 if __name__ == "__main__":

@@ -6,6 +6,8 @@ import torch.optim as optim
 import numpy as np
 
 import matplotlib.pyplot as plt
+import logging
+
 
 def load_and_run_eval(model_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, model_dropout, device):
     model = BaseSCNN(channels=model_channels, base_filters=8, classes=model_classes, image_height=44, dropout_value=model_dropout).to(device)
@@ -34,7 +36,7 @@ def load_and_run_eval(model_path, eval_data_file_path, eval_label_file_path, dat
             eval_acc = 1 - mae
             chance_acc = eval_c_1/len(labels)
             eval_kappa = (eval_acc - chance_acc) / (1-chance_acc)
-            print(f'Eval Loss: {e_loss:.6f} \t Eval Acc: {eval_acc} \t Eval C1: {eval_c_1} \t Evak kappa: {eval_kappa}')
+            logging.info(f'Eval Loss: {e_loss:.6f} \t Eval Acc: {eval_acc} \t Eval C1: {eval_c_1} \t Evak kappa: {eval_kappa}')
 
     return e_loss, eval_acc, eval_kappa
 
@@ -129,14 +131,14 @@ def run_binary_classification(
                 val_mae_acc += sum(diff_l)
         l = len(validation_generator) * params['batch_size']
         val_mae_acc = 1 - (val_mae_acc/l)
-        print(f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(training_generator)} \t Training Acc: {train_mae_acc} \t\t Validation Loss: { val_loss / len(validation_generator)} \t Validation Acc: {val_mae_acc}')
+        logging.info(f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(training_generator)} \t Training Acc: {train_mae_acc} \t\t Validation Loss: { val_loss / len(validation_generator)} \t Validation Acc: {val_mae_acc}')
         epoch_statistics.append(epoch)
         train_loss_statistics.append(train_loss / len(training_generator))
         train_acc_statistics.append(train_mae_acc)
         validation_loss_statistics.append(val_loss / len(validation_generator))
         validation_acc_statistics.append(val_mae_acc)
         if min_valid_loss > val_loss / len(validation_generator):
-            print(f'Validation Loss Decreased({min_valid_loss:.6f}--->{val_loss / len(validation_generator):.6f}')
+            logging.info(f'Validation Loss Decreased({min_valid_loss:.6f}--->{val_loss / len(validation_generator):.6f}')
             min_valid_loss = val_loss / len(validation_generator)
             # save model
             if save_model:
