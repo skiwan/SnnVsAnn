@@ -214,7 +214,7 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
             cut_off_back = cut_off[1]
 
             device = f'cuda:{len(current_threads) // process_per_gpu}'
-            thread_nr = current_threads % process_per_gpu
+            thread_nr = len(current_threads)  % process_per_gpu
 
             # copy temp folder into temp_device
             new_base_s_path = os.path.join(file_directory, f'temp_{device}_{thread_nr}/')
