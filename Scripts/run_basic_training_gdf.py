@@ -248,34 +248,6 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
         'workers': workers
     }
 
-    ray_config = {
-        'base_save_path': base_save_path,
-        'batch_size': batch_size,
-        'cut_off': cut_offs[0],
-        'device': device,
-        'dropout': dropouts[0],
-        'eval_file_name': eval_file_name,
-        'experiment_description': experiment_description,
-        'experiment_name': experiment_name,
-        'extract_features': extract_features,
-        'file_directory': file_directory,
-        'high_pass': high_pass,
-        'learning_rate': tune.grid_search(learning_rates),
-        'low_pass': low_pass,
-        'max_epochs': max_epochs,
-        'model_channels': model_channels,
-        'model_classes': model_classes,
-        'scale_1': scale_1,
-        'scale_2': scale_2,
-        'shuffle': shuffle,
-        'split_ratio': split_ratio,
-        'splitting_strategy': splitting_strategy,
-        'train_file_name': train_file_name,
-        'weight_decay': weight_decays[0],
-        'workers': workers
-    }
-
-
     analysis = tune.run(
         run_threaded_model,
         config=ray_config, resources_per_trial={"gpu": 1/process_per_gpu}, num_samples=1, mode='max', max_concurrent_trials=max_gpus * process_per_gpu)
