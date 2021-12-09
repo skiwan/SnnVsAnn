@@ -44,7 +44,7 @@ def main(experiment_name, experiment_description, learning_rate, weight_decay, c
          subject_name= 'k3b', subject_nr='1',result_collector={}, experiment_number=0 ,device='cuda'):
     file_directory = os.path.dirname(os.path.abspath(__file__))
     parent_folder = os.path.dirname(file_directory)
-    base_save_path = os.path.join(file_directory, 'temp/')
+    base_save_path = os.path.join(file_directory, f'temp_{device}/')
 
     # Create temp folder if not exists
     create_temp_folder(file_directory)
