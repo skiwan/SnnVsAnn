@@ -13,6 +13,8 @@ import math
 import threading
 
 import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 def run_threaded_model(base_save_path, batch_size, cut_off_back, cut_off_front, device, dropout, eval_file_name,
                        experiment_description, experiment_name, experiment_number, experiment_setup_info,
