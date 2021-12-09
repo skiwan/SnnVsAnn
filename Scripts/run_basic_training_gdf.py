@@ -138,7 +138,8 @@ def run_threaded_model(config):
             json.dump(experiment_setup_info, exp_file)
         overall_best_acc = max(best_acc, last_acc)
         tune.report(mean_accuracy=overall_best_acc)
-        return best_acc, experiment_setup_info, last_acc
+        #return best_acc, experiment_setup_info, last_acc
+        return overall_best_acc
     except Exception as e:
         logging.exception('HELP> RUN INTO AN ERROR') # log exception info at CRITICAL log level
 
@@ -250,7 +251,7 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
 
     analysis = tune.run(
         run_threaded_model,
-        config=ray_config, resources_per_trial={"gpu": max_gpus / process_per_gpu}, num_samples=1, mode='max', max_concurrent_trials=max_gpus / process_per_gpu)
+        config=ray_config, resources_per_trial={"gpu": 1/process_per_gpu}, num_samples=1, mode='max', max_concurrent_trials=max_gpus * process_per_gpu)
 
     print("Best config: ", analysis.get_best_config(
         metric="mean_accuracy", mode="max"))
