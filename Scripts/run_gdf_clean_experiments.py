@@ -35,12 +35,9 @@ def main(start_expriment_nr=0,max_gpus=1, process_per_gpu=1):
 
         best_params[i] = best_params_s
 
-    #with open('ANN_GDF_HyperResults.txt', 'w+') as final_file:
-    #    for i, r in enumerate(best_params):
-    #        final_file.write(f'Subject: {i}, learning_rate: {r["Learning_Rate"]}, '
-    #                         f'weight_decay:{r["Weight_Decay"]}, cut_off_front: {r["Sample_Data_Start"]}, '
-    #                         f'cut_off_back: {r["Sample_Data_End"]}, dropout: {r["Dropout_Value"]}, '
-    #                         f'ACC: {r["MultiClass_Best_Evaluation_Accuracy"]}/n/n')
+    with open('ANN_GDF_HyperResults.txt', 'w+') as final_file:
+        for i, r in enumerate(best_params):
+            final_file.write(f'Subject: {nr[i]}, best_conf: {r}/n/n)')
 
     print(best_params)
 
