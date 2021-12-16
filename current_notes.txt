@@ -1,14 +1,49 @@
-get label files for BCI3 3a
-Get rid of Channels last 3 extra channels on BCI 4 2a
+implement all noise types
 
-rename files properly
-restrucutre
-add proper readme
+changes load gdf and asci to allow to pass in a noise function with parameters
 
-find out why values are so different in dimension (from asci is 0.00001... from gdf is 10.00 ...)
+test above
+
+prepare run experiment file to
+
+run on trained networks AND apply training in the same step, no hyper param search (obv0
+
+    Noise impl
+
+    make sure you have the best models and last models for each subject
+
+    create temp folder
+    for each noise level definition
+      add noise to the raw data
+      run whole data pipeline
+      evaluate on best model
+      train on noise data
+      reevlaute on new models
+
+      (result is 2 experiment setups runs, one for non trained and one for noise trained)
+
+    all are applied per channel seperately
 
 
-implement
-Online Spatio-Temporal Learning in Deep Neural Networks
-OSTL (eprop for multi layers)
+    guassian noise impl
+      params
+        min max value for noise (percentage of signal)
 
+    white noise impl
+      params
+        min max value for noise (percentage of signal)
+
+    spike noise impl
+      params
+        strength of spikes
+        amount of spikes added
+
+
+    burst noise impl
+      params
+        strength of spikes
+        amount of spikes added
+
+
+
+    should all noise just be additive? (bigger 0?)
