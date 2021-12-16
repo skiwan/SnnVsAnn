@@ -1,7 +1,4 @@
-import math
-
 from run_basic_training_gdf import main as run_training
-import threading
 import sys
 
 learning_rates = [0.01,0.005,0.001,0.0005,0.0001]
