@@ -15,3 +15,33 @@ Subject Learning-Rate Dropout WeighDecay Cutoff
 8 0.0001 0.3 0.5 100 300
 
 9 0.001 0.1 0.1 25 225
+
+
+_____________________
+[0.45] (3rd place)
+
+
+Subject 1[0.68/0.41]
+Kappa 0.5, 0.63 acc, single classes all at 0.7 acc with 0.7kappa
+
+Subject 2[0.42/0.17]
+Kappa 0.3, 0.5 acc, struggles with class 1 and 4, good on class 2 3
+
+Subject 3[0.75/0.39]
+Kappa 0.75, 0.8 acc, struggles with class 4, otherwise 0.9+ acc
+
+Subject 5[0.40/0.06]
+kappa 0.3, 0.48 acc, all classes bearly over 0.7 acc
+
+Subject 6[0.27/0.16]
+kappa 0.17, 0.4 acc, struggles with all classes, barely 0.6 acc
+
+Subject 7[0.77/0.34]
+kappa 0.5 0.65 acc, pretty good on all classes (0.8 acc)
+
+Subject 8[0.75/0.45]
+kappa 0.75, 0.8 acc, good over all classes 0.8acc really good at class 2 0.9
+
+Subject 9[0.61/0.37]
+kappa 0.6, 0.7 acc, generally ok, struggles with 2 and 3
+
