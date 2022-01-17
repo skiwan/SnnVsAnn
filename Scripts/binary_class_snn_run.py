@@ -162,8 +162,8 @@ def run_binary_classification(
                 s_labels = s_labels.to(device)
                 outputs = model(data)
                 outputs.sum(dim=1)
-                loss = criterion(outputs, s_labels)
-                train_loss += loss.item()
+                v_loss = criterion(outputs, s_labels)
+                val_loss += v_loss.item()
 
                 # convert spike trains to closest label for acc prediction
                 distances = np.array([x - spike_frequencies for x in outputs])
@@ -174,7 +174,7 @@ def run_binary_classification(
 
         l = len(validation_generator) * params['batch_size']
         # val loss and acc
-        val_mae_acc = 1 - (train_mae_acc / l)
+        val_mae_acc = 1 - (val_mae_acc / l)
         # log info
         logging.info(
             f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(training_generator)} \t Training Acc: {train_mae_acc} \t\t Validation Loss: {val_loss / len(validation_generator)} \t Validation Acc: {val_mae_acc}')
@@ -208,18 +208,25 @@ def run_binary_classification(
             s_labels = s_labels.to(device)
             outputs = model(data)
             outputs.sum(dim=1)
-            loss = criterion(outputs, s_labels)
-            train_loss += loss.item()
+            e_loss = criterion(outputs, s_labels)
 
             # convert spike trains to closest label for acc prediction
             distances = np.array([x - spike_frequencies for x in outputs])
             distances = np.absolute(distances)
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
-            val_mae_acc += sum(diff_l)
-    # Same as above
-    # generate eval acc and print\log
-    # save last model
-    #combine and return statistics
-    #
+            eval_c_1 = sum(labels)
 
+            mae_acc = sum(diff_l) / len(diff_l)
+            eval_acc = 1 - mae_acc
+            chance_acc = eval_c_1 / len(labels)
+            eval_kappa = (eval_acc - chance_acc) / (1-chance_acc)
+            # generate eval acc and print\log
+            print(f'Eval Loss: {e_loss:.6f} \t Eval Acc: {eval_acc} \t Eval C1: {eval_c_1} \t Evak kappa: {eval_kappa}')
+
+    # save last model
+    torch.save(model.state_dict(), f'{model_name}_last.pth')
+
+    #combine and return statistics
+    statistics = [epoch_statistics,train_loss_statistics, train_acc_statistics ,validation_loss_statistics, validation_acc_statistics]
+    return statistics, e_loss, eval_acc, eval_kappa, best_val_epoch
