@@ -105,7 +105,7 @@ def run_binary_classification(
             labels = labels.long()
             # Convert class labels to target spike frequencies
             s_labels = [spike_frequencies[i] for i in labels]
-            s_labels = labels.to(device)
+            s_labels = s_labels.to(device)
             # generate outputs
             optimizer.zero_grad()
             outputs = model(data)
@@ -151,18 +151,74 @@ def run_binary_classification(
         val_loss = 0.0
         val_mae_acc = 0.0
         # same as training steps but without optimizer step
+        with torch.set_grad_enabled(False):
+            for data, labels in validation_generator:
+                # transform data
+                data = data[:, :, :, data_cut_front:data_cut_back].float()
+                data = data.to(device)
+                labels = labels.long()
+                # Convert class labels to target spike frequencies
+                s_labels = [spike_frequencies[i] for i in labels]
+                s_labels = s_labels.to(device)
+                outputs = model(data)
+                outputs.sum(dim=1)
+                loss = criterion(outputs, s_labels)
+                train_loss += loss.item()
 
+                # convert spike trains to closest label for acc prediction
+                distances = np.array([x - spike_frequencies for x in outputs])
+                distances = np.absolute(distances)
+                out_labels = np.argmin(distances, axis=1)
+                diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
+                val_mae_acc += sum(diff_l)
+
+        l = len(validation_generator) * params['batch_size']
         # val loss and acc
-
+        val_mae_acc = 1 - (train_mae_acc / l)
         # log info
+        logging.info(
+            f'Epoch {epoch + 1} \t\t Training Loss: {train_loss / len(training_generator)} \t Training Acc: {train_mae_acc} \t\t Validation Loss: {val_loss / len(validation_generator)} \t Validation Acc: {val_mae_acc}')
+        epoch_statistics.append(epoch)
         # append statistics
+        train_loss_statistics.append(train_loss / len(training_generator))
+        train_acc_statistics.append(train_mae_acc)
+        validation_loss_statistics.append(val_loss / len(validation_generator))
+        validation_acc_statistics.append(val_mae_acc)
         # check if val loss is reduced
-        # save model
+        if min_valid_loss > val_loss / len(validation_generator):
+            logging.info(
+                f'Validation Loss Decreased({min_valid_loss:.6f}--->{val_loss / len(validation_generator):.6f}')
+            min_valid_loss = val_loss / len(validation_generator)
+            # save model
+            if save_model:
+                torch.save(model.state_dict(), f'{model_name}.pth')
+                best_val_epoch = epoch
 
     # Beginn of Eval
-        # Load Eval set
-        # Same as above
-        # generate eval acc and print\log
+    model.eval()
+    # Load Eval set
+    with torch.set_grad_enabled(False):
+        for data, labels in evaluation_generator:
+            # transform data
+            data = data[:, :, :, data_cut_front:data_cut_back].float()
+            data = data.to(device)
+            labels = labels.long()
+            # Convert class labels to target spike frequencies
+            s_labels = [spike_frequencies[i] for i in labels]
+            s_labels = s_labels.to(device)
+            outputs = model(data)
+            outputs.sum(dim=1)
+            loss = criterion(outputs, s_labels)
+            train_loss += loss.item()
+
+            # convert spike trains to closest label for acc prediction
+            distances = np.array([x - spike_frequencies for x in outputs])
+            distances = np.absolute(distances)
+            out_labels = np.argmin(distances, axis=1)
+            diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
+            val_mae_acc += sum(diff_l)
+    # Same as above
+    # generate eval acc and print\log
     # save last model
     #combine and return statistics
     #
