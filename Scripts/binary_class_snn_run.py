@@ -31,7 +31,6 @@ def run_binary_classification(
         model_channels, model_classes, model_dropout,
         model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, model_name, device
 ):
-    pass
     # set parameters
     params = {'batch_size': batch_size,
               'shuffle': shuffle,
@@ -87,8 +86,8 @@ def run_binary_classification(
         for i, x in enumerate(labels):
             c_label = int(x)
             spikes = outputs[i]
-            spike_frequencies[c_label] =+ spikes
-            sample_amount[c_label] =+ 1
+            spike_frequencies[c_label] += spikes
+            sample_amount[c_label] += 1
 
     spike_frequencies = (np.array(spike_frequencies)/np.array(sample_amount))
 
@@ -143,8 +142,8 @@ def run_binary_classification(
             for i, x in enumerate(labels):
                 c_label = int(x)
                 spikes = outputs[i]
-                spike_frequencies[c_label] = + spikes
-                sample_amount[c_label] = + 1
+                spike_frequencies[c_label] += spikes
+                sample_amount[c_label] += 1
         spike_frequencies = (np.array(spike_frequencies) / np.array(sample_amount))
 
         # validation phase
