@@ -176,6 +176,7 @@ def run_binary_classification(
             labels = labels.long()
             # Convert class labels to target spike frequencies
             s_labels = [spike_frequencies[i] for i in labels]
+            s_labels = torch.tensor(s_labels)
             s_labels = s_labels.to(device)
             # generate outputs
             optimizer.zero_grad()
