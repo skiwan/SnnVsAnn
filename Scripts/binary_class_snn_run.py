@@ -152,8 +152,8 @@ def run_binary_classification(
         labels = labels.long()
         labels = labels.to(device)
         outputs = model(data)
+        outputs = outputs[0].sum(dim=0) # batch size, spikes
         outputs = torch.squeeze(outputs)
-        outputs = outputs.sum(dim=0) # batch size, spikes
         for i, x in enumerate(labels):
             c_label = int(x)
             spikes = outputs[i]
@@ -182,9 +182,9 @@ def run_binary_classification(
             # generate outputs
             optimizer.zero_grad()
             outputs = model(data)
-            outputs = torch.squeeze(outputs)
             # convert spike trains to sum of spikes
-            outputs = outputs.sum(dim=0)  # batch size, spikes
+            outputs = outputs[0].sum(dim=0)  # batch size, spikes
+            outputs = torch.squeeze(outputs)
             # compute loss
             loss = criterion(outputs, s_labels)
             # backward loss
