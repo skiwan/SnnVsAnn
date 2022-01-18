@@ -145,7 +145,7 @@ def run_binary_classification(
 
     # Beginn of Training for each epoch
     for epoch in range(max_epochs):
-        spike_frequencies = [0,199] # make training target 0 spikes for not my class, 199 spikes for my class
+        spike_frequencies = [25,150] # make training target 25 spikes for not my class, 150 spikes for my class
         # loss and acc
         train_loss = 0.0
         train_mae_acc = 0.0
@@ -181,7 +181,7 @@ def run_binary_classification(
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
             train_mae_acc += sum(diff_l)
-            print(spike_frequencies, outputs,s_labels, out_labels, labels)
+            print(spike_frequencies, outputs)
 
 
         # train_loss = train acc
