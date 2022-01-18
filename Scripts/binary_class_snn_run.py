@@ -7,7 +7,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import logging
-
+logging.basicConfig(level=logging.DEBUG)
 
 def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, model_dropout, device):
     pass
@@ -257,7 +257,6 @@ def run_binary_classification(
             if save_model:
                 torch.save(model.state_dict(), f'{model_name}.pth')
                 best_val_epoch = epoch
-        quit()
 
     # Beginn of Eval
     model.eval()
@@ -272,13 +271,15 @@ def run_binary_classification(
             labels = labels.long()
             # Convert class labels to target spike frequencies
             s_labels = [spike_frequencies[i] for i in labels]
+            s_labels = torch.tensor(s_labels)
             s_labels = s_labels.to(device)
             outputs = model(data)
             outputs = outputs[0].sum(dim=0)  # batch size, spikes
+            outputs = torch.squeeze(outputs)
             e_loss = criterion(outputs, s_labels)
 
             # convert spike trains to closest label for acc prediction
-            distances = np.array([x - spike_frequencies for x in outputs])
+            distances = np.array([x.cpu().clone().detach().numpy() - spike_frequencies for x in outputs])
             distances = np.absolute(distances)
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
