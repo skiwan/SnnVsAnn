@@ -140,26 +140,9 @@ def run_binary_classification(
     validation_acc_statistics = []
 
     # generate average spike frequncy rates for class and non class
-    spike_frequencies = [0 for x in range(model_classes)]
     sample_amount = [0 for x in range(model_classes)]
 
-    # load all samples, sum all 1 and 0 spike trains and generate averages, save as comparison value
-    for data, labels in training_generator:
-        data = data[:, :, data_cut_front:data_cut_back].float()
-        data = torch.swapaxes(data, 0, 2)
-        data = torch.swapaxes(data, 1, 2)
-        data = data.to(device)
-        labels = labels.long()
-        labels = labels.to(device)
-        outputs = model(data)
-        outputs = outputs[0].sum(dim=0) # batch size, spikes
-        outputs = torch.squeeze(outputs)
-        for i, x in enumerate(labels):
-            c_label = int(x)
-            spikes = outputs[i]
-            spike_frequencies[c_label] += spikes.item()
-            sample_amount[c_label] += 1
-    spike_frequencies = (np.array(spike_frequencies)/np.array(sample_amount))
+    spike_frequencies = [0,199] # make first training target 0 spikes for not my class, 199 spikes for my class
 
 
     # Beginn of Training for each epoch
