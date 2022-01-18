@@ -21,8 +21,8 @@ def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, e
     training_generator = DataLoader(training_data,  batch_size=training_data.__len__())
 
     # generate average spike frequncy rates for class and non class
-    spike_frequencies = [0 for x in model_classes]
-    sample_amount = [0 for x in model_classes]
+    spike_frequencies = [0 for x in range(model_classes)]
+    sample_amount = [0 for x in range(model_classes)]
 
     # Generate average spike frequencies
     # load all samples, sum all 1 and 0 spike trains and generate averages, save as comparison value
@@ -136,8 +136,8 @@ def run_binary_classification(
     validation_acc_statistics = []
 
     # generate average spike frequncy rates for class and non class
-    spike_frequencies = [0 for x in model_classes]
-    sample_amount = [0 for x in model_classes]
+    spike_frequencies = [0 for x in range(model_classes)]
+    sample_amount = [0 for x in range(model_classes)]
 
     # load all samples, sum all 1 and 0 spike trains and generate averages, save as comparison value
     for data, labels in training_generator:
@@ -194,8 +194,8 @@ def run_binary_classification(
         train_mae_acc = 1 - (train_mae_acc/l)
 
         # reset spike frequencies after training
-        spike_frequencies = [0 for x in model_classes]
-        sample_amount = [0 for x in model_classes]
+        spike_frequencies = [0 for x in range(model_classes)]
+        sample_amount = [0 for x in range(model_classes)]
         for data, labels in training_generator:
             data = data[:, :, :, data_cut_front:data_cut_back].float()
             data = data.to(device)
