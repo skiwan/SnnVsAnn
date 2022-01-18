@@ -1,6 +1,7 @@
 import os
 import shutil
 from Scripts.Utils import create_temp_folder, delete_temp_folder, create_folder_if_not_exists, delete_folder
+from Scripts.binary_class_snn_run import run_binary_classification
 from load_eeg_from_GDF import load_eeg_from_gdf
 from apply_CSP import apply_csp
 from normalize_feature_extraction import apply_normlized_feature_extraction
@@ -56,6 +57,9 @@ destination_path = os.path.join(destination_path, f'{experiment_name}')
 create_folder_if_not_exists(destination_path)
 destination_path = f'{destination_path}/'
 
+i = 1
+
+"""
 load_eeg_from_gdf(low_pass, high_pass, raw_train_file_name, f'{base_save_path}raw_train', frequency=250, trial_duration=6)
 load_eeg_from_gdf(low_pass, high_pass, raw_eval_file_name, f'{base_save_path}raw_eval', frequency=250,
                       trial_duration=6)
@@ -70,7 +74,6 @@ apply_csp(f'{base_save_path}raw_train_{low_pass}_{high_pass}.npy', f'{base_save_
           low_pass, high_pass)
 
 # for each of the datasets
-i = 1
 # apply normalize without extraction in temp folder
 apply_normlized_feature_extraction(f'{base_save_path}csp_train_class{i}.npy', f'{base_save_path}raw_train_labels.npy',
                                    f'{base_save_path}normalized_train',
@@ -80,4 +83,17 @@ apply_normlized_feature_extraction(f'{base_save_path}csp_train_class{i}.npy', f'
 
 # Prepare Train and Val sets
 data_splitter = DataSplitter(f'{base_save_path}normalized_train_class{i}.npy', f'{base_save_path}normalized_train_class{i}_labels.npy', f'{base_save_path}_class{i}', split_ratio)
-data_splitter.split(splitting_strategy)
+data_splitter.split(splitting_strategy)"""
+
+
+
+model_name = f'{base_save_path}{experiment_name}_class{i}_model'
+
+statistics, e_loss, eval_acc, eval_kappa, best_val_epoch = run_binary_classification(
+    batch_size, shuffle, workers, max_epochs,
+    f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy',
+    f'{base_save_path}_class{i}_validate_data.npy', f'{base_save_path}_class{i}_validate_labels.npy',
+    f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy',
+        model_channels, model_classes,
+        model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, model_name, device
+)
