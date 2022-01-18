@@ -165,6 +165,9 @@ def run_binary_classification(
             optimizer.zero_grad()
             outputs = model(data)
             # convert spike trains to sum of spikes
+            print(data)
+            print(outputs[0])
+            quit()
             outputs = outputs[0].sum(dim=0)  # batch size, spikes
             outputs = torch.squeeze(outputs)
             # compute loss
