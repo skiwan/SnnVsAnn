@@ -182,6 +182,8 @@ def run_binary_classification(
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
             train_mae_acc += sum(diff_l)
             print(spike_frequencies, outputs, out_labels, labels)
+            print(model.linear_1.weight)
+            print(model.linear_2.weight)
 
 
         # train_loss = train acc
