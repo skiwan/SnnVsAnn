@@ -28,11 +28,13 @@ def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, e
     # load all samples, sum all 1 and 0 spike trains and generate averages, save as comparison value
     for data, labels in training_generator:
         data = data[:, :, data_cut_front:data_cut_back].float()
+        data = torch.swapaxes(data, 0, 2)
+        data = torch.swapaxes(data, 1, 2)
         data = data.to(device)
         labels = labels.long()
         labels = labels.to(device)
         outputs = model(data)
-        outputs = outputs.sum(dim=1)
+        outputs = outputs[0].sum(dim=0)  # batch size, spikes
         for i, x in enumerate(labels):
             c_label = int(x)
             spikes = outputs[i]
@@ -56,6 +58,8 @@ def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, e
         for data, labels in evaluation_generator:
             # transform data
             data = data[:, :, data_cut_front:data_cut_back].float()
+            data = torch.swapaxes(data, 0, 2)
+            data = torch.swapaxes(data, 1, 2)
             data = data.to(device)
             labels = labels.long()
             # Convert class labels to target spike frequencies
@@ -63,7 +67,7 @@ def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, e
             s_labels = s_labels.to(device)
             # generate output
             outputs = model(data)
-            outputs.sum(dim=1)
+            outputs = outputs[0].sum(dim=0)  # batch size, spikes
             e_loss = criterion(outputs, s_labels)
 
             # transform to labels via average spike frequency
@@ -144,21 +148,21 @@ def run_binary_classification(
         data = data[:, :, data_cut_front:data_cut_back].float()
         data = torch.swapaxes(data, 0, 2)
         data = torch.swapaxes(data, 1, 2)
-        print(data.shape)
         data = data.to(device)
         labels = labels.long()
         labels = labels.to(device)
         outputs = model(data)
-        print(outputs[0].shape)
-        outputs = outputs[0].sum(dim=0)
-        print(outputs.shape)
+        outputs = outputs[0].sum(dim=0) # batch size, spikes
         for i, x in enumerate(labels):
             c_label = int(x)
-            spikes = outputs[i]
+            spikes = outputs[i][0]
             spike_frequencies[c_label] += spikes
             sample_amount[c_label] += 1
-        quit()
+    print(spike_frequencies)
+    print(sample_amount)
     spike_frequencies = (np.array(spike_frequencies)/np.array(sample_amount))
+    print(spike_frequencies)
+    quit()
 
     # Beginn of Training for each epoch
     for epoch in range(max_epochs):
@@ -169,6 +173,8 @@ def run_binary_classification(
         for data, labels in training_generator:
             # transform data
             data = data[:, :, data_cut_front:data_cut_back].float()
+            data = torch.swapaxes(data, 0, 2)
+            data = torch.swapaxes(data, 1, 2)
             data = data.to(device)
             labels = labels.long()
             # Convert class labels to target spike frequencies
@@ -178,7 +184,7 @@ def run_binary_classification(
             optimizer.zero_grad()
             outputs = model(data)
             # convert spike trains to sum of spikes
-            outputs.sum(dim=1)
+            outputs = outputs[0].sum(dim=0)  # batch size, spikes
             # compute loss
             loss = criterion(outputs, s_labels)
             # backward loss
@@ -203,11 +209,13 @@ def run_binary_classification(
         sample_amount = [0 for x in range(model_classes)]
         for data, labels in training_generator:
             data = data[:, :, data_cut_front:data_cut_back].float()
+            data = torch.swapaxes(data, 0, 2)
+            data = torch.swapaxes(data, 1, 2)
             data = data.to(device)
             labels = labels.long()
             labels = labels.to(device)
             outputs = model(data)
-            outputs = outputs.sum(dim=1)
+            outputs = outputs[0].sum(dim=0)  # batch size, spikes
             for i, x in enumerate(labels):
                 c_label = int(x)
                 spikes = outputs[i]
@@ -223,13 +231,15 @@ def run_binary_classification(
             for data, labels in validation_generator:
                 # transform data
                 data = data[:, :, data_cut_front:data_cut_back].float()
+                data = torch.swapaxes(data, 0, 2)
+                data = torch.swapaxes(data, 1, 2)
                 data = data.to(device)
                 labels = labels.long()
                 # Convert class labels to target spike frequencies
                 s_labels = [spike_frequencies[i] for i in labels]
                 s_labels = s_labels.to(device)
                 outputs = model(data)
-                outputs.sum(dim=1)
+                outputs = outputs[0].sum(dim=0)  # batch size, spikes
                 v_loss = criterion(outputs, s_labels)
                 val_loss += v_loss.item()
 
@@ -269,13 +279,15 @@ def run_binary_classification(
         for data, labels in evaluation_generator:
             # transform data
             data = data[:, :, data_cut_front:data_cut_back].float()
+            data = torch.swapaxes(data, 0, 2)
+            data = torch.swapaxes(data, 1, 2)
             data = data.to(device)
             labels = labels.long()
             # Convert class labels to target spike frequencies
             s_labels = [spike_frequencies[i] for i in labels]
             s_labels = s_labels.to(device)
             outputs = model(data)
-            outputs.sum(dim=1)
+            outputs = outputs[0].sum(dim=0)  # batch size, spikes
             e_loss = criterion(outputs, s_labels)
 
             # convert spike trains to closest label for acc prediction
