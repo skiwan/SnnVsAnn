@@ -79,5 +79,5 @@ apply_normlized_feature_extraction(f'{base_save_path}csp_train_class{i}.npy', f'
                                    i, extract=extract_features)
 
 # Prepare Train and Val sets
-data_splitter = DataSplitter(f'{base_save_path}cwt_train_class{i}.npy', f'{base_save_path}normalized_train_class{i}_labels.npy', f'{base_save_path}_class{i}', split_ratio)
+data_splitter = DataSplitter(f'{base_save_path}normalized_train_class{i}.npy', f'{base_save_path}normalized_train_class{i}_labels.npy', f'{base_save_path}_class{i}', split_ratio)
 data_splitter.split(splitting_strategy)
