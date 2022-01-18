@@ -9,18 +9,82 @@ import matplotlib.pyplot as plt
 import logging
 
 
-def load_and_run_eval():
+def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, model_dropout, device):
     pass
     # Create Model and Load Model
+    model = BinaryEEGClassifierLIF(channels=model_channels).to(device)
+    model.load_state_dict(torch.load(model_path))
     # load training set
+    train_data_file = train_data_file_path
+    train_label_file = train_label_file_path
+    training_data = CustomDataset(train_label_file, train_data_file)
+    training_generator = DataLoader(training_data,  batch_size=training_data.__len__())
+
+    # generate average spike frequncy rates for class and non class
+    spike_frequencies = [0 for x in model_classes]
+    sample_amount = [0 for x in model_classes]
+
     # Generate average spike frequencies
+    # load all samples, sum all 1 and 0 spike trains and generate averages, save as comparison value
+    for data, labels in training_generator:
+        data = data[:, :, :, data_cut_front:data_cut_back].float()
+        data = data.to(device)
+        labels = labels.long()
+        labels = labels.to(device)
+        outputs = model(data)
+        outputs = outputs.sum(dim=1)
+        for i, x in enumerate(labels):
+            c_label = int(x)
+            spikes = outputs[i]
+            spike_frequencies[c_label] += spikes
+            sample_amount[c_label] += 1
+
+
+    spike_frequencies = (np.array(spike_frequencies) / np.array(sample_amount))
     # set model to eval mode
+    model.eval()
+
     # load eval files
+    eval_data_file = eval_data_file_path
+    eval_label_file = eval_label_file_path
+    evaluate_data = CustomDataset(eval_label_file, eval_data_file)
+    evaluation_generator = DataLoader(evaluate_data, batch_size=evaluate_data.__len__())
+    criterion = torch.nn.L1Loss()
+
     # for eval data
-        # generate output
-        # transform to labels via average spike frequency
-        # generate stastics
+    with torch.set_grad_enabled(False):
+        for data, labels in evaluation_generator:
+            # transform data
+            data = data[:, :, :, data_cut_front:data_cut_back].float()
+            data = data.to(device)
+            labels = labels.long()
+            # Convert class labels to target spike frequencies
+            s_labels = [spike_frequencies[i] for i in labels]
+            s_labels = s_labels.to(device)
+            # generate output
+            outputs = model(data)
+            outputs.sum(dim=1)
+            e_loss = criterion(outputs, s_labels)
+
+            # transform to labels via average spike frequency
+            distances = np.array([x - spike_frequencies for x in outputs])
+            distances = np.absolute(distances)
+            out_labels = np.argmin(distances, axis=1)
+            diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
+            eval_c_1 = sum(labels)
+
+            # generate stastics
+            mae_acc = sum(diff_l) / len(diff_l)
+            eval_acc = 1 - mae_acc
+            chance_acc = eval_c_1 / len(labels)
+            eval_kappa = (eval_acc - chance_acc) / (1-chance_acc)
+            # generate eval acc and print\log
+            print(f'Eval Loss: {e_loss:.6f} \t Eval Acc: {eval_acc} \t Eval C1: {eval_c_1} \t Evak kappa: {eval_kappa}')
     # return statistics
+    return e_loss, eval_acc, eval_kappa
+
+
+
 
 
 def run_binary_classification(
@@ -28,7 +92,7 @@ def run_binary_classification(
         train_data_file_path, train_label_file_path,
         val_data_file_path, val_label_file_path,
         eval_data_file_path, eval_label_file_path,
-        model_channels, model_classes, model_dropout,
+        model_channels, model_classes,
         model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, model_name, device
 ):
     # set parameters
