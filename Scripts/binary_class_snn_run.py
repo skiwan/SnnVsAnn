@@ -158,10 +158,10 @@ def run_binary_classification(
             spikes = outputs[i][0]
             spike_frequencies[c_label] += spikes.item()
             sample_amount[c_label] += 1
-    print(training_generator.__len__())
+    print(training_data.__len__())
     print(spike_frequencies)
     print(sample_amount)
-    spike_frequencies = (np.array(spike_frequencies)/np.array(sample_amount.cpu()))
+    spike_frequencies = (np.array(spike_frequencies)/np.array(sample_amount))
     print(spike_frequencies)
     quit()
 
