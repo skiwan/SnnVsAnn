@@ -181,7 +181,7 @@ def run_binary_classification(
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
             train_mae_acc += sum(diff_l)
-            print(spike_frequencies, outputs, out_labels, labels)
+            print(spike_frequencies, outputs,s_labels, out_labels, labels)
 
 
         # train_loss = train acc
@@ -191,22 +191,23 @@ def run_binary_classification(
         # reset spike frequencies after training to get actual average spike frequencies
         spike_frequencies = [0 for x in range(model_classes)]
         sample_amount = [0 for x in range(model_classes)]
-        for data, labels in training_generator:
-            data = data[:, :, data_cut_front:data_cut_back].float()
-            data = torch.swapaxes(data, 0, 2)
-            data = torch.swapaxes(data, 1, 2)
-            data = data.to(device)
-            labels = labels.long()
-            labels = labels.to(device)
-            outputs = model(data)
-            outputs = outputs[0].sum(dim=0)  # batch size, spikes
-            outputs = torch.squeeze(outputs)
-            for i, x in enumerate(labels):
-                c_label = int(x.item())
-                spikes = outputs[i]
-                spike_frequencies[c_label] += spikes.item()
-                sample_amount[c_label] += 1
-        spike_frequencies = (np.array(spike_frequencies) / np.array(sample_amount))
+        with torch.set_grad_enabled(False):
+            for data, labels in training_generator:
+                data = data[:, :, data_cut_front:data_cut_back].float()
+                data = torch.swapaxes(data, 0, 2)
+                data = torch.swapaxes(data, 1, 2)
+                data = data.to(device)
+                labels = labels.long()
+                labels = labels.to(device)
+                outputs = model(data)
+                outputs = outputs[0].sum(dim=0)  # batch size, spikes
+                outputs = torch.squeeze(outputs)
+                for i, x in enumerate(labels):
+                    c_label = int(x.item())
+                    spikes = outputs[i]
+                    spike_frequencies[c_label] += spikes.item()
+                    sample_amount[c_label] += 1
+            spike_frequencies = (np.array(spike_frequencies) / np.array(sample_amount))
 
         # validation phase
         val_loss = 0.0
