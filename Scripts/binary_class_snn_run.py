@@ -140,13 +140,12 @@ def run_binary_classification(
     validation_acc_statistics = []
 
     # generate average spike frequncy rates for class and non class
-    sample_amount = [0 for x in range(model_classes)]
 
-    spike_frequencies = [0,199] # make first training target 0 spikes for not my class, 199 spikes for my class
 
 
     # Beginn of Training for each epoch
     for epoch in range(max_epochs):
+        spike_frequencies = [0,199] # make training target 0 spikes for not my class, 199 spikes for my class
         # loss and acc
         train_loss = 0.0
         train_mae_acc = 0.0
@@ -182,14 +181,13 @@ def run_binary_classification(
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
             train_mae_acc += sum(diff_l)
-            print(spike_frequencies, distances, out_labels)
-            quit()
+
 
         # train_loss = train acc
         l = len(training_generator)*params['batch_size']
         train_mae_acc = 1 - (train_mae_acc/l)
 
-        # reset spike frequencies after training
+        # reset spike frequencies after training to get actual average spike frequencies
         spike_frequencies = [0 for x in range(model_classes)]
         sample_amount = [0 for x in range(model_classes)]
         for data, labels in training_generator:
@@ -201,9 +199,10 @@ def run_binary_classification(
             labels = labels.to(device)
             outputs = model(data)
             outputs = outputs[0].sum(dim=0)  # batch size, spikes
+            outputs = torch.squeeze(outputs)
             for i, x in enumerate(labels):
-                c_label = int(x)
-                spikes = outputs[i][0]
+                c_label = int(x.item())
+                spikes = outputs[i]
                 spike_frequencies[c_label] += spikes.item()
                 sample_amount[c_label] += 1
         spike_frequencies = (np.array(spike_frequencies) / np.array(sample_amount))
@@ -222,14 +221,16 @@ def run_binary_classification(
                 labels = labels.long()
                 # Convert class labels to target spike frequencies
                 s_labels = [spike_frequencies[i] for i in labels]
+                s_labels = torch.tensor(s_labels)
                 s_labels = s_labels.to(device)
                 outputs = model(data)
                 outputs = outputs[0].sum(dim=0)  # batch size, spikes
+                outputs = torch.squeeze(outputs)
                 v_loss = criterion(outputs, s_labels)
                 val_loss += v_loss.item()
 
                 # convert spike trains to closest label for acc prediction
-                distances = np.array([x - spike_frequencies for x in outputs])
+                distances = np.array([x.cpu().clone().detach().numpy() - spike_frequencies for x in outputs])
                 distances = np.absolute(distances)
                 out_labels = np.argmin(distances, axis=1)
                 diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
@@ -256,6 +257,7 @@ def run_binary_classification(
             if save_model:
                 torch.save(model.state_dict(), f'{model_name}.pth')
                 best_val_epoch = epoch
+        quit()
 
     # Beginn of Eval
     model.eval()
