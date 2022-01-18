@@ -194,7 +194,7 @@ def run_binary_classification(
             train_loss += loss.item()
 
             # convert spike trains to closest label for acc prediction
-            distances = np.array([x.cpu() - spike_frequencies for x in outputs])
+            distances = np.array([x.cpu().copy().detach().numpy() - spike_frequencies for x in outputs])
             distances = np.absolute(distances)
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
