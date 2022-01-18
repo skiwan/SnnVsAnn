@@ -202,7 +202,7 @@ def run_binary_classification(
         spike_frequencies = [0 for x in range(model_classes)]
         sample_amount = [0 for x in range(model_classes)]
         for data, labels in training_generator:
-            data = data[:, , data_cut_front:data_cut_back].float()
+            data = data[:, :, data_cut_front:data_cut_back].float()
             data = data.to(device)
             labels = labels.long()
             labels = labels.to(device)
