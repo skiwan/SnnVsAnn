@@ -149,8 +149,10 @@ def run_binary_classification(
         labels = labels.long()
         labels = labels.to(device)
         outputs = model(data)
-        print(outputs.shape)
-        outputs = outputs.sum(dim=1)
+        print(outputs[0][0])
+        print(outputs[1])
+        print(outputs[0].shape)
+        outputs = outputs[0].sum(dim=1)
         print(outputs.shape)
         for i, x in enumerate(labels):
             c_label = int(x)
