@@ -13,7 +13,7 @@ class BinaryEEGClassifierLIF(torch.nn.Module):
     self.model = SequentialState(
     self.linear_1,
     #LIF(),
-    #self.linear_2,
+    self.linear_2,
     LIF()
     )
 
