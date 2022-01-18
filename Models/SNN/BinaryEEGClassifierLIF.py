@@ -3,10 +3,10 @@ from norse.torch import SequentialState, LIF
 import torch
 
 class BinaryEEGClassifierLIF(torch.nn.Module):
-  def __init__(self, input_channels):
+  def __init__(self, channels=8):
     super().__init__()
     self.model = SequentialState(
-    torch.nn.Linear(input_channels,2),
+    torch.nn.Linear(channels,2),
     LIF(),
     torch.nn.Linear(2,1),
     LIF()
