@@ -152,10 +152,11 @@ def run_binary_classification(
         labels = labels.long()
         labels = labels.to(device)
         outputs = model(data)
-        outputs = outputs[0].sum(dim=0) # batch size, spikes
+        outputs = torch.squeeze(outputs)
+        outputs = outputs.sum(dim=0) # batch size, spikes
         for i, x in enumerate(labels):
             c_label = int(x)
-            spikes = outputs[i][0]
+            spikes = outputs[i]
             spike_frequencies[c_label] += spikes.item()
             sample_amount[c_label] += 1
     spike_frequencies = (np.array(spike_frequencies)/np.array(sample_amount))
@@ -181,8 +182,9 @@ def run_binary_classification(
             # generate outputs
             optimizer.zero_grad()
             outputs = model(data)
+            outputs = torch.squeeze(outputs)
             # convert spike trains to sum of spikes
-            outputs = outputs[0].sum(dim=0)  # batch size, spikes
+            outputs = outputs.sum(dim=0)  # batch size, spikes
             # compute loss
             loss = criterion(outputs, s_labels)
             # backward loss
@@ -192,7 +194,7 @@ def run_binary_classification(
             train_loss += loss.item()
 
             # convert spike trains to closest label for acc prediction
-            distances = np.array([x[0] - spike_frequencies for x in outputs])
+            distances = np.array([x.cpu() - spike_frequencies for x in outputs])
             distances = np.absolute(distances)
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
