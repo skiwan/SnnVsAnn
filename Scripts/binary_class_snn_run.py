@@ -199,7 +199,7 @@ def run_binary_classification(
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
             train_mae_acc += sum(diff_l)
-            print(distances, out_labels)
+            print(spike_frequencies, distances, out_labels)
             quit()
 
         # train_loss = train acc
