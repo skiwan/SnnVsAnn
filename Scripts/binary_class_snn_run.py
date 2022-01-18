@@ -158,12 +158,8 @@ def run_binary_classification(
             spikes = outputs[i][0]
             spike_frequencies[c_label] += spikes.item()
             sample_amount[c_label] += 1
-    print(training_data.__len__())
-    print(spike_frequencies)
-    print(sample_amount)
     spike_frequencies = (np.array(spike_frequencies)/np.array(sample_amount))
-    print(spike_frequencies)
-    quit()
+
 
     # Beginn of Training for each epoch
     for epoch in range(max_epochs):
@@ -195,11 +191,13 @@ def run_binary_classification(
             train_loss += loss.item()
 
             # convert spike trains to closest label for acc prediction
-            distances = np.array([x - spike_frequencies for x in outputs])
+            distances = np.array([x[0] - spike_frequencies for x in outputs])
             distances = np.absolute(distances)
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
             train_mae_acc += sum(diff_l)
+            print(distances, out_labels)
+            quit()
 
         # train_loss = train acc
         l = len(training_generator)*params['batch_size']
@@ -219,8 +217,8 @@ def run_binary_classification(
             outputs = outputs[0].sum(dim=0)  # batch size, spikes
             for i, x in enumerate(labels):
                 c_label = int(x)
-                spikes = outputs[i]
-                spike_frequencies[c_label] += spikes
+                spikes = outputs[i][0]
+                spike_frequencies[c_label] += spikes.item()
                 sample_amount[c_label] += 1
         spike_frequencies = (np.array(spike_frequencies) / np.array(sample_amount))
 
