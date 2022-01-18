@@ -42,11 +42,11 @@ splitting_strategy = 'balanced-copy'
 batch_size = 16
 shuffle = True
 workers = 1
-max_epochs = 5
+max_epochs = 20
 model_channels = 8
 model_classes = 2
 
-model_learning_rate = 0.01
+model_learning_rate = 0.1
 model_weight_decay = 0.1
 data_cut_front = 0
 data_cut_back = 200
