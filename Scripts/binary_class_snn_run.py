@@ -7,7 +7,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import logging
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, device):
     # Create Model and Load Model
