@@ -9,8 +9,7 @@ import matplotlib.pyplot as plt
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, model_dropout, device):
-    pass
+def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, device):
     # Create Model and Load Model
     model = BinaryEEGClassifierLIF(channels=model_channels).to(device)
     model.load_state_dict(torch.load(model_path))
@@ -35,13 +34,12 @@ def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, e
         labels = labels.to(device)
         outputs = model(data)
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
+        outputs = torch.squeeze(outputs)
         for i, x in enumerate(labels):
-            c_label = int(x)
+            c_label = int(x.item())
             spikes = outputs[i]
-            spike_frequencies[c_label] += spikes
+            spike_frequencies[c_label] += spikes.item()
             sample_amount[c_label] += 1
-
-
     spike_frequencies = (np.array(spike_frequencies) / np.array(sample_amount))
     # set model to eval mode
     model.eval()
@@ -64,14 +62,16 @@ def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, e
             labels = labels.long()
             # Convert class labels to target spike frequencies
             s_labels = [spike_frequencies[i] for i in labels]
+            s_labels = torch.tensor(s_labels)
             s_labels = s_labels.to(device)
             # generate output
             outputs = model(data)
             outputs = outputs[0].sum(dim=0)  # batch size, spikes
+            outputs = torch.squeeze(outputs)
             e_loss = criterion(outputs, s_labels)
 
             # transform to labels via average spike frequency
-            distances = np.array([x - spike_frequencies for x in outputs])
+            distances = np.array([x.cpu().clone().detach().numpy() - spike_frequencies for x in outputs])
             distances = np.absolute(distances)
             out_labels = np.argmin(distances, axis=1)
             diff_l = [0 if out_labels[i] == labels[i] else 1 for i in range(len(labels))]
