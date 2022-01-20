@@ -59,7 +59,7 @@ destination_path = f'{destination_path}/'
 
 i = 1
 
-"""
+
 load_eeg_from_gdf(low_pass, high_pass, raw_train_file_name, f'{base_save_path}raw_train', frequency=250, trial_duration=6)
 load_eeg_from_gdf(low_pass, high_pass, raw_eval_file_name, f'{base_save_path}raw_eval', frequency=250,
                       trial_duration=6)
@@ -83,7 +83,7 @@ apply_normlized_feature_extraction(f'{base_save_path}csp_train_class{i}.npy', f'
 
 # Prepare Train and Val sets
 data_splitter = DataSplitter(f'{base_save_path}normalized_train_class{i}.npy', f'{base_save_path}normalized_train_class{i}_labels.npy', f'{base_save_path}_class{i}', split_ratio)
-data_splitter.split(splitting_strategy)"""
+data_splitter.split(splitting_strategy)
 
 
 
