@@ -35,7 +35,6 @@ def main(base_path, base_model_name, class_amount
         last_model = BinaryEEGClassifierLIF(channels=model_channels).to(device)
         last_model.load_state_dict(torch.load(last_model_path))
         last_models.append(last_model)
-        # TODO check file name
         eval_sets.append(torch.from_numpy(np.load(f'{base_path}normalized_eval_class{i+1}.npy')).to(device))
 
     best_predicts = []
@@ -47,7 +46,7 @@ def main(base_path, base_model_name, class_amount
         b_model = best_models[c]
         l_model = last_models[c]
         data = eval_sets[c]
-        data = data[:,:,:,data_cut_front:data_cut_back].float()
+        data = data[:,:,data_cut_front:data_cut_back].float()
         data = torch.swapaxes(data, 0, 2)
         data = torch.swapaxes(data, 1, 2)
         outputs = b_model(data)
