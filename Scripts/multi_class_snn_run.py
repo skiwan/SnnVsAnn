@@ -36,7 +36,7 @@ def main(base_path, base_model_name, class_amount
         last_model.load_state_dict(torch.load(last_model_path))
         last_models.append(last_model)
         # TODO check file name
-        eval_sets.append(torch.from_numpy(np.load(f'{base_path}_eval_class{i+1}.npy')).to(device))
+        eval_sets.append(torch.from_numpy(np.load(f'{base_path}normalized_eval_class{i+1}.npy')).to(device))
 
     best_predicts = []
     last_predicts = []
