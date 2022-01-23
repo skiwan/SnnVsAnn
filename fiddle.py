@@ -43,7 +43,7 @@ splitting_strategy = 'balanced-copy'
 batch_size = 64
 shuffle = True
 workers = 1
-max_epochs = 500
+max_epochs = 5
 model_channels = 8
 model_classes = 2
 
@@ -114,8 +114,9 @@ for i in range(1,5):
     # load saved best val model and apply eval set
     if save_model:
         e_loss, eval_acc, eval_kappa = load_and_run_eval(
-            f'{base_save_path}{experiment_name}_class{i}_model.pth'
-            , f'{base_save_path}nprmalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
+            f'{base_save_path}{experiment_name}_class{i}_model.pth',
+            f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy'
+            , f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
             , data_cut_front, data_cut_back, model_channels, model_classes, device)
 
 best_acc, best_kappa, last_acc, last_kappa = multiclass_run(base_save_path, experiment_name, 4
