@@ -7,13 +7,14 @@ from apply_CSP import apply_csp
 from normalize_feature_extraction import apply_normlized_feature_extraction
 from Models.data_splitter import DataSplitter
 from Scripts.multi_class_snn_run import main as multiclass_run
-
+from Scripts.multi_class_snn_run import main_return_data as multiclass_run_data
+import numpy as np
 
 file_directory = os.path.dirname(os.path.abspath(__file__))
 file_directory = os.path.join(file_directory, 'Scripts/')
 base_save_path = os.path.join(file_directory, 'temp/')
 
-n='01'
+n='08'
 experiment_name = f'Binary_SNN_A{n}'
 experiment_description = 'One vs Rest classification of GDF based motor imagery classifcation on SNN Architecture. ' \
                          'Applies Error averaging, CSP and Normalization'
@@ -43,7 +44,6 @@ splitting_strategy = 'balanced-copy'
 batch_size = 64
 shuffle = True
 workers = 1
-max_epochs = 5
 model_channels = 8
 model_classes = 2
 
@@ -51,14 +51,6 @@ model_learning_rate = 0.01
 model_weight_decay = 0.0
 data_cut_front = 0
 data_cut_back = 200
-experiment_name = f'{experiment_name}_learnrate{model_learning_rate}_weightdec{model_weight_decay}_cutoff{data_cut_front}_{data_cut_back}'
-save_model = True
-destination_path = os.path.join(file_directory, 'Experiments')
-destination_path = os.path.join(destination_path, f'{experiment_name}')
-create_folder_if_not_exists(destination_path)
-destination_path = f'{destination_path}/'
-
-
 
 load_eeg_from_gdf(low_pass, high_pass, raw_train_file_name, f'{base_save_path}raw_train', frequency=250, trial_duration=6)
 load_eeg_from_gdf(low_pass, high_pass, raw_eval_file_name, f'{base_save_path}raw_eval', frequency=250,
@@ -89,11 +81,21 @@ for i in range(1, 5):
                                  split_ratio)
     data_splitter.split(splitting_strategy)
 
+# Load all 4 best models
+# Load eval file set
+# for each class pick 4 samples
+# for each model, run all 4*4 samples
+    # Save spike trains
+    # Save spike trains as txt and as pngs via matplotlib
+
+models = []
+save_model = True
+
 for i in range(1,5):
     model_name = f'{base_save_path}{experiment_name}_class{i}_model'
 
     statistics, e_loss, eval_acc, eval_kappa, best_val_epoch = run_binary_classification(
-        batch_size, shuffle, workers, max_epochs,
+        batch_size, shuffle, workers, 300,
         f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy',
         f'{base_save_path}_class{i}_validate_data.npy', f'{base_save_path}_class{i}_validate_labels.npy',
         f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy',
@@ -119,10 +121,32 @@ for i in range(1,5):
             , f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
             , data_cut_front, data_cut_back, model_channels, model_classes, device)
 
-best_acc, best_kappa, last_acc, last_kappa = multiclass_run(base_save_path, experiment_name, 4
+best_acc, best_kappa, last_acc, last_kappa, model_output = multiclass_run_data(base_save_path, experiment_name, 4
                                                                     , data_cut_front, data_cut_back, model_channels,
                                                                     model_classes, 'cpu')
 
 print(f'Multiclass Accuarcy best: {best_acc}, last: {last_acc}')
 overall_best_acc = max(best_acc, last_acc)
 print(overall_best_acc)
+
+activity_spikes_best = [[[],[],[],[]],[[],[],[],[]],[[],[],[],[]],[[],[],[],[]]]
+activity_spikes_last = [[[],[],[],[]],[[],[],[],[]],[[],[],[],[]],[[],[],[],[]]]
+
+# For each model getlast and best
+for c in range(4):
+    best_c = model_output[c][0]
+    last_c = model_output[c][1]
+
+    # for each class
+    for l in range(4):
+        samples = best_c[l][:4]
+        activity_spikes_best[l][c] = samples
+        samples = last_c[l][:4]
+        activity_spikes_last[c][l] = samples
+
+for l in range(4):
+    all_best_trains = np.asarray(activity_spikes_best[l])
+    np.save(f'best_models_label_{l}_activity.npy', all_best_trains)
+    all_last_trains = np.asarray(activity_spikes_last[l])
+    np.save(f'last_models_label_{l}_activity.npy', all_last_trains)
+
