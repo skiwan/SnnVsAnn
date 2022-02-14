@@ -173,7 +173,7 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     batch_size = 32
     shuffle = True
     workers = 1
-    max_epochs = 500
+    max_epochs = 300
     model_channels = 8
     model_classes = 2
 
