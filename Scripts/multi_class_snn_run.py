@@ -129,19 +129,19 @@ def main_return_data(base_path, base_model_name, class_amount
         data = torch.swapaxes(data, 0, 2)
         data = torch.swapaxes(data, 1, 2)
         outputs = b_model(data)
-        best_train.append(outputs)
+        best_train.append(list(outputs))
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
         outputs = torch.squeeze(outputs) # spikes per sample
         best_models_convidence.append(outputs)
         outputs = l_model(data)
-        last_train.append(outputs)
+        last_train.append(list(outputs))
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
         outputs = torch.squeeze(outputs)  # spikes per sample
         last_models_convidence.append(outputs)
 
-        for l in eval_labels:
-            model_outputs[c][0][l].append(best_train[c][l])
-            model_outputs[c][1][l].append(last_train[c][l])
+        for i, l in enumerate(eval_labels):
+            model_outputs[c][0][l].append(best_train[c][i])
+            model_outputs[c][1][l].append(last_train[c][i])
 
 
     best_models_convidence = [torch.tensor(best_models_convidence[i]) for i in range(class_amount)]
