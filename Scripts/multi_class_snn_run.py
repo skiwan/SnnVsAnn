@@ -139,8 +139,9 @@ def main_return_data(base_path, base_model_name, class_amount
         outputs = torch.squeeze(outputs)  # spikes per sample
         last_models_convidence.append(outputs)
 
+        print(eval_labels)
+        print(len(eval_labels))
         for i, l in enumerate(eval_labels):
-            print(i,l)
             model_outputs[c][0][l].append(best_train[c][i].detach())
             model_outputs[c][1][l].append(last_train[c][i].detach())
 
