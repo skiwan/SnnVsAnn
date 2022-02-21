@@ -140,8 +140,8 @@ def main_return_data(base_path, base_model_name, class_amount
         last_models_convidence.append(outputs)
 
         for l in eval_labels:
-            model_outputs[c][0][l].append(best_models_convidence[c][l].detach())
-            model_outputs[c][1][l].append(last_models_convidence[c][l].detach())
+            model_outputs[c][0][l].append(best_train[c][l].detach())
+            model_outputs[c][1][l].append(last_train[c][l].detach())
 
 
     best_models_convidence = [torch.tensor(best_models_convidence[i]) for i in range(class_amount)]
