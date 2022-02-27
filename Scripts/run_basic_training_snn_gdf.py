@@ -22,7 +22,6 @@ def run_threaded_model(config):
     try:
         base_save_path = config['base_save_path']
         batch_size = config['batch_size']
-        cut_off = config['cut_off']
         device = config['device']
         eval_file_name = config['eval_file_name']
         experiment_description = config['experiment_description']
