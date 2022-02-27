@@ -15,7 +15,7 @@ import os
 # raw_eval_labels.npy
 
 def main(base_path, base_model_name, class_amount
-         ,data_cut_front, data_cut_back, model_channels, model_classes, device):
+         ,model_channels, model_classes, device):
 
     best_models = []
     last_models = []
@@ -46,7 +46,7 @@ def main(base_path, base_model_name, class_amount
         b_model = best_models[c]
         l_model = last_models[c]
         data = eval_sets[c]
-        data = data[:,:,data_cut_front:data_cut_back].float()
+        data = data[:,:,:].float()
         data = torch.swapaxes(data, 0, 2)
         data = torch.swapaxes(data, 1, 2)
         outputs = b_model(data)
@@ -86,7 +86,7 @@ def main(base_path, base_model_name, class_amount
 
 
 def main_return_data(base_path, base_model_name, class_amount
-         ,data_cut_front, data_cut_back, model_channels, model_classes, device):
+         , model_channels, model_classes, device):
 
     best_models = []
     last_models = []
@@ -125,7 +125,7 @@ def main_return_data(base_path, base_model_name, class_amount
         b_model = best_models[c]
         l_model = last_models[c]
         data = eval_sets[c]
-        data = data[:,:,data_cut_front:data_cut_back].float()
+        data = data[:,:,:].float()
         data = torch.swapaxes(data, 0, 2)
         data = torch.swapaxes(data, 1, 2)
         outputs = b_model(data)
@@ -139,10 +139,6 @@ def main_return_data(base_path, base_model_name, class_amount
         outputs = torch.squeeze(outputs)  # spikes per sample
         last_models_convidence.append(outputs)
 
-        print(len(best_train))
-        print(len(best_train[0]))
-        print(len(best_train[0][0]))
-        print(len(eval_labels))
         for i, l in enumerate(eval_labels):
             model_outputs[c][0][l].append(best_train[c][i].detach())
             model_outputs[c][1][l].append(last_train[c][i].detach())

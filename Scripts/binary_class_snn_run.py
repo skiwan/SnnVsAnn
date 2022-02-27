@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import logging
 #logging.basicConfig(level=logging.DEBUG)
 
-def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, eval_data_file_path, eval_label_file_path, data_cut_front, data_cut_back, model_channels, model_classes, device):
+def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, eval_data_file_path, eval_label_file_path, model_channels, model_classes, device):
     # Create Model and Load Model
     model = BinaryEEGClassifierLIF(channels=model_channels).to(device)
     model.load_state_dict(torch.load(model_path))
@@ -26,7 +26,7 @@ def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, e
     # Generate average spike frequencies
     # load all samples, sum all 1 and 0 spike trains and generate averages, save as comparison value
     for data, labels in training_generator:
-        data = data[:, :, data_cut_front:data_cut_back].float()
+        data = data[:, :, :].float()
         data = torch.swapaxes(data, 0, 2)
         data = torch.swapaxes(data, 1, 2)
         data = data.to(device)
@@ -55,7 +55,7 @@ def load_and_run_eval(model_path, train_data_file_path, train_label_file_path, e
     with torch.set_grad_enabled(False):
         for data, labels in evaluation_generator:
             # transform data
-            data = data[:, :, data_cut_front:data_cut_back].float()
+            data = data[:, :, :].float()
             data = torch.swapaxes(data, 0, 2)
             data = torch.swapaxes(data, 1, 2)
             data = data.to(device)
@@ -97,7 +97,7 @@ def run_binary_classification(
         val_data_file_path, val_label_file_path,
         eval_data_file_path, eval_label_file_path,
         model_channels, model_classes,
-        model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model, model_name, device
+        model_learning_rate, model_weight_decay, save_model, model_name, device
 ):
     # set parameters
     params = {'batch_size': batch_size,
@@ -152,7 +152,7 @@ def run_binary_classification(
         # for each batch
         for data, labels in training_generator:
             # transform data
-            data = data[:, :, data_cut_front:data_cut_back].float()
+            data = data[:, :, :].float()
             data = torch.swapaxes(data, 0, 2)
             data = torch.swapaxes(data, 1, 2)
             data = data.to(device)
@@ -193,7 +193,7 @@ def run_binary_classification(
         sample_amount = [0 for x in range(model_classes)]
         with torch.set_grad_enabled(False):
             for data, labels in training_generator:
-                data = data[:, :, data_cut_front:data_cut_back].float()
+                data = data[:, :, :].float()
                 data = torch.swapaxes(data, 0, 2)
                 data = torch.swapaxes(data, 1, 2)
                 data = data.to(device)
@@ -216,7 +216,7 @@ def run_binary_classification(
         with torch.set_grad_enabled(False):
             for data, labels in validation_generator:
                 # transform data
-                data = data[:, :, data_cut_front:data_cut_back].float()
+                data = data[:, :, :].float()
                 data = torch.swapaxes(data, 0, 2)
                 data = torch.swapaxes(data, 1, 2)
                 data = data.to(device)
@@ -266,7 +266,7 @@ def run_binary_classification(
     with torch.set_grad_enabled(False):
         for data, labels in evaluation_generator:
             # transform data
-            data = data[:, :, data_cut_front:data_cut_back].float()
+            data = data[:, :, :].float()
             data = torch.swapaxes(data, 0, 2)
             data = torch.swapaxes(data, 1, 2)
             data = data.to(device)

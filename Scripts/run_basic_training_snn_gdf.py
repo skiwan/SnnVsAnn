@@ -46,9 +46,7 @@ def run_threaded_model(config):
 
         model_learning_rate = learning_rate
         model_weight_decay = weight_decay
-        data_cut_front = cut_off[0]
-        data_cut_back = cut_off[1]
-        experiment_name = f'{experiment_name}_learnrate{learning_rate}_weightdec{weight_decay}_cutoff{data_cut_front}_{data_cut_back}'
+        experiment_name = f'{experiment_name}_learnrate{learning_rate}_weightdec{weight_decay}'
         save_model = True
         destination_path = os.path.join(file_directory, 'Experiments')
         destination_path = os.path.join(destination_path, f'{experiment_name}')
@@ -74,8 +72,6 @@ def run_threaded_model(config):
         experiment_setup_info['Model_Classes'] = model_classes
         experiment_setup_info['Learning_Rate'] = model_learning_rate
         experiment_setup_info['Weight_Decay'] = model_weight_decay
-        experiment_setup_info['Sample_Data_Start'] = data_cut_front
-        experiment_setup_info['Sample_Data_End'] = data_cut_back
         experiment_setup_info['Save_Best_Models'] = save_model
         for i in range(1, 5):
             # Load binary model script with parameters
@@ -86,7 +82,7 @@ def run_threaded_model(config):
                 f'{base_save_path}_class{i}_validate_data.npy', f'{base_save_path}_class{i}_validate_labels.npy',
                 f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy',
                 model_channels, model_classes,
-                model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model,
+                model_learning_rate, model_weight_decay, save_model,
                 f'{base_save_path}{experiment_name}_class{i}_model', device
             )
             experiment_setup_info[f'Class_{i}_Evaluation_Loss'] = e_loss.item()
@@ -117,14 +113,14 @@ def run_threaded_model(config):
                     f'{base_save_path}{experiment_name}_class{i}_model.pth',
                     f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy'
                     , f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
-                    , data_cut_front, data_cut_back, model_channels, model_classes, device)
+                    ,model_channels, model_classes, device)
                 ## save statistic of eval on best val model
                 experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Loss'] = e_loss.item()
                 experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Accuracy'] = eval_acc
                 experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Kappa'] = eval_kappa.item()
         # call the multiclass function on all 4 models
         best_acc, best_kappa, last_acc, last_kappa = multiclass_run(base_save_path, experiment_name, 4
-                                                                    , data_cut_front, data_cut_back, model_channels,
+                                                                    , model_channels,
                                                                     model_classes, 'cpu')
         experiment_setup_info[f'MultiClass_Best_Evaluation_Accuracy'] = best_acc
         experiment_setup_info[f'MultiClass_Best_Evaluation_Kappa'] = best_kappa
@@ -144,7 +140,7 @@ def run_threaded_model(config):
 
 
 def main(experiment_name, experiment_description, train_file_name, eval_file_name, eval_label_file_name,
-         learning_rates, weight_decays, cut_offs,
+         learning_rates, weight_decays,
          experiment_number=0, device='cuda', max_gpus=1, process_per_gpu=1):
     file_directory = os.path.dirname(os.path.abspath(__file__))
     parent_folder = os.path.dirname(file_directory)
@@ -215,7 +211,6 @@ def main(experiment_name, experiment_description, train_file_name, eval_file_nam
     ray_config = {
         'base_save_path': base_save_path,
         'batch_size': batch_size,
-        'cut_off': tune.grid_search(cut_offs),
         'device': device,
         'eval_file_name': eval_file_name,
         'experiment_description': experiment_description,
