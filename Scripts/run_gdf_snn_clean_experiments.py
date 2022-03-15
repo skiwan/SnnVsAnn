@@ -5,7 +5,7 @@ learning_rates = [0.01,0.005,0.001,0.0005,0.0001]
 weight_decays = [0,0.5,0.1,0.05,0.01,0.005,0.001,0.0005,0.0001]
 #cut_offs = [[0,200],[25,225],[50,250],[75,275],[100,300]]
 #nr = ['01', '02', '03', '05', '06', '07', '08', '09']
-nr = ['01','02','03']
+nr = ['05','06','07','09']
 
 def main(start_expriment_nr=0,max_gpus=1, process_per_gpu=1):
     start_expriment_nr = int(start_expriment_nr)
@@ -30,7 +30,7 @@ def main(start_expriment_nr=0,max_gpus=1, process_per_gpu=1):
 
         best_params[i] = best_params_s
 
-    with open('SNN_GDF_HyperResults_1_2_3.txt', 'w+') as final_file:
+    with open('SNN_GDF_HyperResults_5_6_7_9.txt', 'w+') as final_file:
         for i, r in enumerate(best_params):
             final_file.write(f'Subject: {nr[i]}, best_conf: {r}/n/n)')
 
