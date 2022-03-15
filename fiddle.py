@@ -14,7 +14,7 @@ file_directory = os.path.dirname(os.path.abspath(__file__))
 file_directory = os.path.join(file_directory, 'Scripts/')
 base_save_path = os.path.join(file_directory, 'temp/')
 
-n='08'
+n='03'
 experiment_name = f'Binary_SNN_A{n}'
 experiment_description = 'One vs Rest classification of GDF based motor imagery classifcation on SNN Architecture. ' \
                          'Applies Error averaging, CSP and Normalization'
@@ -49,8 +49,6 @@ model_classes = 2
 
 model_learning_rate = 0.01
 model_weight_decay = 0.0
-data_cut_front = 0
-data_cut_back = 200
 
 load_eeg_from_gdf(low_pass, high_pass, raw_train_file_name, f'{base_save_path}raw_train', frequency=250, trial_duration=6)
 load_eeg_from_gdf(low_pass, high_pass, raw_eval_file_name, f'{base_save_path}raw_eval', frequency=250,
@@ -100,7 +98,7 @@ for i in range(1,5):
         f'{base_save_path}_class{i}_validate_data.npy', f'{base_save_path}_class{i}_validate_labels.npy',
         f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy',
         model_channels, model_classes,
-        model_learning_rate, model_weight_decay, data_cut_front, data_cut_back, save_model,
+        model_learning_rate, model_weight_decay, save_model,
         f'{base_save_path}{experiment_name}_class{i}_model', device
     )
 
@@ -119,10 +117,10 @@ for i in range(1,5):
             f'{base_save_path}{experiment_name}_class{i}_model.pth',
             f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy'
             , f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
-            , data_cut_front, data_cut_back, model_channels, model_classes, device)
+            , model_channels, model_classes, device)
 
 best_acc, best_kappa, last_acc, last_kappa, model_output = multiclass_run_data(base_save_path, experiment_name, 4
-                                                                    , data_cut_front, data_cut_back, model_channels,
+                                                                    , model_channels,
                                                                     model_classes, 'cpu')
 
 print(f'Multiclass Accuarcy best: {best_acc}, last: {last_acc}')
