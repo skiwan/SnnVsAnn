@@ -21,7 +21,7 @@ experiment_description = 'One vs Rest classification of GDF based motor imagery 
 train_file_name = f'A{n}T.gdf'
 eval_file_name = f'A{n}E.gdf'
 eval_label_file_name = f'A{n}E_labels.npy'
-device = f'cuda'
+device = f'cpu'
 
 # Create temp folder if not exists
 create_temp_folder(file_directory)
@@ -93,7 +93,7 @@ for i in range(1,5):
     model_name = f'{base_save_path}{experiment_name}_class{i}_model'
 
     statistics, e_loss, eval_acc, eval_kappa, best_val_epoch = run_binary_classification(
-        batch_size, shuffle, workers, 300,
+        batch_size, shuffle, workers, 5,
         f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy',
         f'{base_save_path}_class{i}_validate_data.npy', f'{base_save_path}_class{i}_validate_labels.npy',
         f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy',
@@ -144,7 +144,7 @@ for c in range(4):
 
 for l in range(4):
     all_best_trains = np.asarray(activity_spikes_best[l])
-    np.save(f'best_models_label_{l}_activity.npy', all_best_trains)
+    np.save(f'_best_models_label_{l}_activity.npy', all_best_trains)
     all_last_trains = np.asarray(activity_spikes_last[l])
-    np.save(f'last_models_label_{l}_activity.npy', all_last_trains)
+    np.save(f'_last_models_label_{l}_activity.npy', all_last_trains)
 
