@@ -63,7 +63,7 @@ def run_threaded_model(config):
 
     model_learning_rate = learning_rate
     model_weight_decay = weight_decay
-    experiment_name = f'{experiment_name}_learnrate{learning_rate}_weightdec{weight_decay}'  # 'Binary_ANN_A01'
+    experiment_name = f'{experiment_name}_learnrate{learning_rate}'  # 'Binary_ANN_A01'
     save_model = True
     destination_path = os.path.join(file_directory, 'Experiments')
     destination_path = os.path.join(destination_path, f'{experiment_name}')
@@ -170,7 +170,7 @@ def main(experiment_name, experiment_description, learning_rates, weight_decays,
     train_file_name = os.path.join(subject_folder, f'{subject_name}_s.txt')
     trigger_file = os.path.join(subject_folder, f'{subject_name}_HDR_TRIG.txt')
     untrue_label_file = os.path.join(subject_folder, f'{subject_name}_HDR_Classlabel.txt')
-    true_label_file = os.path.join(base_label_path, f'true_labels_{subject_name}.npy')
+    true_label_file = os.path.join(base_label_path, f'true_labels_{subject_name[:-1]}.npy')
 
 
     low_pass = 7
