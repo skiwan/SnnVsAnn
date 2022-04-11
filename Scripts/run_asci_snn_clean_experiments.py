@@ -1,4 +1,4 @@
-from run_basic_training_asci import main as run_training
+from run_basic_training_snn_asci import main as run_training
 import sys
 
 learning_rates = [0.01, 0.005, 0.001, 0.0005, 0.0001]
