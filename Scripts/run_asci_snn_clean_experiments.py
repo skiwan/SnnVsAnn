@@ -2,8 +2,6 @@ from run_basic_training_asci import main as run_training
 import sys
 
 learning_rates = [0.01, 0.005, 0.001, 0.0005, 0.0001]
-weight_decays = [0, 0.5, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001]
-cut_offs = [[0, 200], [25, 225], [50, 250], [75, 275], [100, 300]]
 subjects = [['k3b', '1'], ['k6b', '2'], ['l1b', '3']]
 
 
@@ -19,7 +17,7 @@ def main(start_expriment_nr=0, max_gpus=1, process_per_gpu=1):
                                  'Applies Error averaging, CSP and Normalization'
         device = f'cuda'
         best_params_s = run_training(experiment_name, experiment_description,
-                                     learning_rates, weight_decays, cut_offs,
+                                     learning_rates, [0.0],
                                      s[0], s[1],
                                      start_expriment_nr, device, max_gpus, process_per_gpu)
         best_params[i] = best_params_s
