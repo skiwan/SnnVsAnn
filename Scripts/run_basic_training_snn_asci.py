@@ -170,7 +170,7 @@ def main(experiment_name, experiment_description, learning_rates, weight_decays,
     train_file_name = os.path.join(subject_folder, f'{subject_name}_s.txt')
     trigger_file = os.path.join(subject_folder, f'{subject_name}_HDR_TRIG.txt')
     untrue_label_file = os.path.join(subject_folder, f'{subject_name}_HDR_Classlabel.txt')
-    true_label_file = os.path.join(base_label_path, f'true_labels_{subject_name[:-1]}.npy')
+    true_label_file = os.path.join(base_label_path, f'true_labels_{subject_name}.npy')
 
 
     low_pass = 7
