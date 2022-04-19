@@ -14,6 +14,8 @@ import os
 # normalized_eval_class1.npy
 # raw_eval_labels.npy
 
+global_outputs = {}
+
 def main(base_path, base_model_name, class_amount
          ,model_channels, model_classes, device):
 
@@ -86,10 +88,15 @@ def main(base_path, base_model_name, class_amount
 
     return best_acc, best_kappa, last_acc, last_kappa
 
+def pre_hook(module, input, output):
+    global global_outputs
+    pass
+
 
 def main_return_data(base_path, base_model_name, class_amount
          , model_channels, model_classes, device):
-
+    global global_outputs
+    global_outputs = {}
     best_models = []
     last_models = []
     eval_label_file = f'{base_path}raw_eval_labels.npy'
@@ -103,11 +110,13 @@ def main_return_data(base_path, base_model_name, class_amount
 
         best_model = BinaryEEGClassifierLIF(channels=model_channels).to(device)
         best_model.load_state_dict(torch.load(best_model_path))
+        best_model.LIF_1.register_forward_hook(pre_hook)
         best_models.append(best_model)
 
         last_model = BinaryEEGClassifierLIF(channels=model_channels).to(device)
         last_model.load_state_dict(torch.load(last_model_path))
         last_models.append(last_model)
+        last_model.LIF_1.register_forward_hook(pre_hook)
         eval_sets.append(torch.from_numpy(np.load(f'{base_path}normalized_eval_class{i+1}.npy')).to(device))
 
     best_train = []
