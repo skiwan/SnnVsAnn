@@ -18,7 +18,8 @@ global_outputs = {}
 
 def main(base_path, base_model_name, class_amount
          ,model_channels, model_classes, device):
-
+    global global_outputs
+    global_outputs = {}
     best_models = []
     last_models = []
     eval_label_file = f'{base_path}raw_eval_labels.npy'
@@ -32,10 +33,12 @@ def main(base_path, base_model_name, class_amount
 
         best_model = BinaryEEGClassifierLIF(channels=model_channels).to(device)
         best_model.load_state_dict(torch.load(best_model_path))
+        best_model.LIF_1.register_forward_hook(pre_hook)
         best_models.append(best_model)
 
         last_model = BinaryEEGClassifierLIF(channels=model_channels).to(device)
         last_model.load_state_dict(torch.load(last_model_path))
+        last_model.LIF_1.register_forward_hook(pre_hook)
         last_models.append(last_model)
         eval_sets.append(torch.from_numpy(np.load(f'{base_path}normalized_eval_class{i+1}.npy')).to(device))
 
@@ -54,12 +57,12 @@ def main(base_path, base_model_name, class_amount
         outputs = b_model(data)
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
         outputs = torch.squeeze(outputs) # spikes per sample
-        outputs = [o[1]/o[0] for o in outputs]
+        outputs = [o[1] if o[0] == 0 else o[1]/o[0] for o in outputs]
         best_models_convidence.append(outputs)
         outputs = l_model(data)
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
         outputs = torch.squeeze(outputs)  # spikes per sample
-        outputs = [o[1]/o[0] for o in outputs]
+        outputs = [o[1] if o[0] == 0 else o[1]/o[0] for o in outputs]
         last_models_convidence.append(outputs)
 
     best_models_convidence = [torch.tensor(best_models_convidence[i]) for i in range(class_amount)]
@@ -90,6 +93,7 @@ def main(base_path, base_model_name, class_amount
 
 def pre_hook(module, input, output):
     global global_outputs
+    print(1)
     pass
 
 
@@ -143,13 +147,13 @@ def main_return_data(base_path, base_model_name, class_amount
         best_train.append(list(torch.swapaxes(outputs[0],0,1)))
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
         outputs = torch.squeeze(outputs) # spikes per sample
-        outputs = [o[1]/o[0] for o in outputs]
+        outputs = [o[1] if o[0] == 0 else o[1]/o[0] for o in outputs]
         best_models_convidence.append(outputs)
         outputs = l_model(data)
         last_train.append(list(torch.swapaxes(outputs[0],0,1)))
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
         outputs = torch.squeeze(outputs)  # spikes per sample
-        outputs = [o[1]/o[0] for o in outputs]
+        outputs = [o[1] if o[0] == 0 else o[1]/o[0] for o in outputs]
         last_models_convidence.append(outputs)
 
         for i, l in enumerate(eval_labels):

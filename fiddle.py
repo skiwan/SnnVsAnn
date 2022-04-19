@@ -49,7 +49,7 @@ model_classes = 2
 
 model_learning_rate = 0.01
 model_weight_decay = 0.0
-
+"""
 load_eeg_from_gdf(low_pass, high_pass, raw_train_file_name, f'{base_save_path}raw_train', frequency=250, trial_duration=6)
 load_eeg_from_gdf(low_pass, high_pass, raw_eval_file_name, f'{base_save_path}raw_eval', frequency=250,
                       trial_duration=6)
@@ -118,7 +118,7 @@ for i in range(1,5):
             f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy'
             , f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
             , model_channels, model_classes, device)
-
+"""
 best_acc, best_kappa, last_acc, last_kappa, model_output = multiclass_run_data(base_save_path, experiment_name, 4
                                                                     , model_channels,
                                                                     model_classes, 'cpu')
@@ -126,6 +126,7 @@ best_acc, best_kappa, last_acc, last_kappa, model_output = multiclass_run_data(b
 print(f'Multiclass Accuarcy best: {best_acc}, last: {last_acc}')
 overall_best_acc = max(best_acc, last_acc)
 print(overall_best_acc)
+quit()
 
 activity_spikes_best = [[[],[],[],[]],[[],[],[],[]],[[],[],[],[]],[[],[],[],[]]]
 activity_spikes_last = [[[],[],[],[]],[[],[],[],[]],[[],[],[],[]],[[],[],[],[]]]
