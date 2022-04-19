@@ -15,10 +15,12 @@ import os
 # raw_eval_labels.npy
 
 global_outputs = {}
+global_model_name = ""
 
 def main(base_path, base_model_name, class_amount
          ,model_channels, model_classes, device):
     global global_outputs
+    global global_model_name
     global_outputs = {}
     best_models = []
     last_models = []
@@ -93,6 +95,7 @@ def main(base_path, base_model_name, class_amount
 
 def pre_hook(module, input, output):
     global global_outputs
+    global global_model_name
     print(1)
     pass
 
@@ -100,6 +103,7 @@ def pre_hook(module, input, output):
 def main_return_data(base_path, base_model_name, class_amount
          , model_channels, model_classes, device):
     global global_outputs
+    global global_model_name
     global_outputs = {}
     best_models = []
     last_models = []
