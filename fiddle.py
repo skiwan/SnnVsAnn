@@ -17,7 +17,7 @@ base_save_path = os.path.join(file_directory, 'temp/')
 n='03'
 experiment_name = f'Binary_SNN_A{n}'
 experiment_description = 'One vs Rest classification of GDF based motor imagery classifcation on SNN Architecture. ' \
-                         'Applies Error averaging, CSP and Normalization'
+                            'Applies Error averaging, CSP and Normalization'
 train_file_name = f'A{n}T.gdf'
 eval_file_name = f'A{n}E.gdf'
 eval_label_file_name = f'A{n}E_labels.npy'
@@ -93,7 +93,7 @@ for i in range(1,5):
     model_name = f'{base_save_path}{experiment_name}_class{i}_model'
 
     statistics, e_loss, eval_acc, eval_kappa, best_val_epoch = run_binary_classification(
-        batch_size, shuffle, workers, 5,
+        batch_size, shuffle, workers, 300,
         f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy',
         f'{base_save_path}_class{i}_validate_data.npy', f'{base_save_path}_class{i}_validate_labels.npy',
         f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy',

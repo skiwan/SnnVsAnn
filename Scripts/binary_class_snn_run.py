@@ -122,10 +122,10 @@ def run_binary_classification(
 
     ts = len(training_data[0][0][0])
 
-
+    # NO YES CLassifier
     # Beginn of Training for each epoch
     for epoch in range(max_epochs):
-        spike_frequencies = [[0, ts], [ts, 0]] # make training targetssor my class and not my class
+        spike_frequencies = [[ts, 0], [0, ts]] # make training targetssor my class and not my class
         # loss and acc
         train_loss = 0.0
         train_mae_acc = 0.0
