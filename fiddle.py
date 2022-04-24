@@ -119,22 +119,25 @@ for i in range(1,5):
             , f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
             , model_channels, model_classes, device)
 """
-best_acc, best_kappa, last_acc, last_kappa, model_output = multiclass_run_data(base_save_path, experiment_name, 4
+best_acc, best_kappa, last_acc, last_kappa, model_output, interim_output = multiclass_run_data(base_save_path, experiment_name, 4
                                                                     , model_channels,
                                                                     model_classes, 'cpu')
 
 print(f'Multiclass Accuarcy best: {best_acc}, last: {last_acc}')
 overall_best_acc = max(best_acc, last_acc)
 print(overall_best_acc)
-quit()
 
 activity_spikes_best = [[[],[],[],[]],[[],[],[],[]],[[],[],[],[]],[[],[],[],[]]]
 activity_spikes_last = [[[],[],[],[]],[[],[],[],[]],[[],[],[],[]],[[],[],[],[]]]
 
+activity_spikes_inter_best = [[[],[],[],[]],[[],[],[],[]],[[],[],[],[]],[[],[],[],[]]]
+activity_spikes_inter_last = [[[],[],[],[]],[[],[],[],[]],[[],[],[],[]],[[],[],[],[]]]
 # For each model getlast and best
 for c in range(4):
     best_c = model_output[c][0]
+    best_inter_c = interim_output[c][0]
     last_c = model_output[c][1]
+    last_inter_c = interim_output[c][1]
 
     # for each class
     for l in range(4):
@@ -143,9 +146,19 @@ for c in range(4):
         samples = last_c[l][:4]
         activity_spikes_last[c][l] = samples
 
+        samples = best_inter_c[l][:4]
+        activity_spikes_inter_best[l][c] = samples
+        samples = last_inter_c[l][:4]
+        activity_spikes_inter_last[c][l] = samples
+
 for l in range(4):
     all_best_trains = np.asarray(activity_spikes_best[l])
     np.save(f'_best_models_label_{l}_activity.npy', all_best_trains)
     all_last_trains = np.asarray(activity_spikes_last[l])
     np.save(f'_last_models_label_{l}_activity.npy', all_last_trains)
+
+    all_best_inter_trains = np.asarray(activity_spikes_inter_best[l])
+    np.save(f'_best_models_label_{l}_inter_activity.npy', all_best_inter_trains)
+    all_last_inter_trains = np.asarray(activity_spikes_inter_last[l])
+    np.save(f'_last_models_label_{l}_inter_activity.npy', all_last_inter_trains)
 

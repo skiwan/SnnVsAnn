@@ -56,11 +56,13 @@ def main(base_path, base_model_name, class_amount
         data = data[:,:,:].float()
         data = torch.swapaxes(data, 0, 2)
         data = torch.swapaxes(data, 1, 2)
+        global_model_name = f"{c}_best"
         outputs = b_model(data)
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
         outputs = torch.squeeze(outputs) # spikes per sample
         outputs = [o[1] if o[0] == 0 else o[1]/o[0] for o in outputs]
         best_models_convidence.append(outputs)
+        global_model_name = f"{c}_last"
         outputs = l_model(data)
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
         outputs = torch.squeeze(outputs)  # spikes per sample
@@ -96,8 +98,8 @@ def main(base_path, base_model_name, class_amount
 def pre_hook(module, input, output):
     global global_outputs
     global global_model_name
-    print(1)
-    pass
+    global_outputs[global_model_name] = list(torch.swapaxes(output[0],0,1))
+
 
 
 def main_return_data(base_path, base_model_name, class_amount
@@ -140,6 +142,13 @@ def main_return_data(base_path, base_model_name, class_amount
         [[[],[],[],[]],[[],[],[],[]]]
     ]
 
+    model_interim_outputs = [
+        [[[],[],[],[]],[[],[],[],[]]],
+        [[[],[],[],[]],[[],[],[],[]]],
+        [[[],[],[],[]],[[],[],[],[]]],
+        [[[],[],[],[]],[[],[],[],[]]]
+    ]
+
     for c in range(class_amount):
         b_model = best_models[c]
         l_model = last_models[c]
@@ -147,12 +156,14 @@ def main_return_data(base_path, base_model_name, class_amount
         data = data[:,:,:].float()
         data = torch.swapaxes(data, 0, 2)
         data = torch.swapaxes(data, 1, 2)
+        global_model_name = f"{c}_best"
         outputs = b_model(data)
         best_train.append(list(torch.swapaxes(outputs[0],0,1)))
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
         outputs = torch.squeeze(outputs) # spikes per sample
         outputs = [o[1] if o[0] == 0 else o[1]/o[0] for o in outputs]
         best_models_convidence.append(outputs)
+        global_model_name = f"{c}_last"
         outputs = l_model(data)
         last_train.append(list(torch.swapaxes(outputs[0],0,1)))
         outputs = outputs[0].sum(dim=0)  # batch size, spikes
@@ -163,6 +174,8 @@ def main_return_data(base_path, base_model_name, class_amount
         for i, l in enumerate(eval_labels):
             model_outputs[c][0][l].append(best_train[c][i].detach())
             model_outputs[c][1][l].append(last_train[c][i].detach())
+            model_interim_outputs[c][0][l].append(global_outputs[f"{c}_best"][i].detach())
+            model_interim_outputs[c][1][l].append(global_outputs[f"{c}_last"][i].detach())
 
 
     best_models_convidence = [torch.tensor(best_models_convidence[i]) for i in range(class_amount)]
@@ -189,4 +202,4 @@ def main_return_data(base_path, base_model_name, class_amount
     best_kappa = (best_acc - 0.25) / (1-0.25)
     last_kappa = (last_acc - 0.25) / (1-0.25)
 
-    return best_acc, best_kappa, last_acc, last_kappa, model_outputs
+    return best_acc, best_kappa, last_acc, last_kappa, model_outputs, model_interim_outputs
