@@ -127,7 +127,8 @@ def run_threaded_model(config):
         if save_model:
             e_loss, eval_acc, eval_kappa = load_and_run_eval(
                 f'{base_save_path}{experiment_name}_class{i}_model.pth'
-                , f'{base_save_path}cwt_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
+                ,f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy'
+                , f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy'
                 ,model_channels, model_classes, device)
             ## save statistic of eval on best val model
             experiment_setup_info[f'Best_Model_Class_{i}_Evaluation_Loss'] = e_loss.item()
