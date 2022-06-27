@@ -8,7 +8,7 @@ class BinaryEEGClassifierLIF(torch.nn.Module):
     self.linear_1 = torch.nn.Linear(channels,20)
     self.LIF_1 = LIF()
     #self.linear_1.weight = torch.nn.Parameter(torch.abs(self.linear_1.weight))
-    self.linear_2 = torch.nn.Linear(20,2)
+    self.linear_2 = torch.nn.Linear(20,1)
     #self.linear_2.weight = torch.nn.Parameter(torch.abs(self.linear_2.weight))
     self.LIF_2 = LIF()
 

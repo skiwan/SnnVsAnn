@@ -9,7 +9,7 @@ base_save_path = os.path.join(file_directory, 'temp/')
 # label, class samples
 
 model_types = ["best", "last"]
-
+plt.rcParams['figure.constrained_layout.use'] = True
 
 for label in range(4):
     for model_type in model_types:
@@ -40,31 +40,43 @@ for label in range(4):
 
                     for t_plot in [current_plot, sub_plots[s]]:
                         t_plot.set_title(
-                            f'Label {label + 1} - Model {model} {model_type} - {data_type} Sample {sample}')
+                            f'Label {label + 1} - Model {model+1} {model_type} - {data_type} Sample {sample}')
                         t_plot.set_xlabel("Timestep")
                         t_plot.set_ylabel("Neuron")
                         t_plot.set_xlim([0, 1500])
 
                     full_y = sample_data.squeeze().tolist()
-                    neurons = len(full_y[0])
                     legend = []
-                    for neuron in range(neurons):
-                        x = [i for i in range(1500) if full_y[i][neuron] > 0]
-                        y = [full_y[i][neuron] for i in x]
-                        y = [i*(neuron+1)-1 for i in y]
+                    if type(full_y[0]) != type([]):
+                        x = [i for i in range(1500) if full_y[i] > 0]
+                        y = [full_y[i] + 1 for i in x]
                         sub_plots[s].scatter(x, y)
                         current_plot.scatter(x, y)
                         if data_type == "output":
                             legend.append(len(y))
+                    else:
+                        neurons = len(full_y[0])
+                        for neuron in range(neurons):
+                            x = [i for i in range(1500) if full_y[i][neuron] > 0]
+                            y = [full_y[i][neuron] for i in x]
+                            y = [i*(neuron+1)-1 for i in y]
+                            sub_plots[s].scatter(x, y)
+                            current_plot.scatter(x, y)
+                            if data_type == "output":
+                                legend.append(len(y))
 
                     if data_type == "output":
-                        sub_plots[s].legend([f"Yes Neuron {legend[0]}", f"No Neuron {legend[1]}"])
-                        current_plot.legend([f"Yes Neuron {legend[0]}", f"No Neuron {legend[1]}"])
+                        sub_plots[s].legend([f"Yes Neuron {legend[0]}"])
+                        current_plot.legend([f"Yes Neuron {legend[0]}"])
                     s += 1
+                #sub_fig.tight_layout()
                 sub_fig.savefig(f'{model_type}_label{label + 1}_model{model + 1}_sample_{sample}_activity.png', dpi=200)
-                plt.clf()
+                sub_fig.clf()
+                plt.close(sub_fig)
+            #main_fig.tight_layout()
             main_fig.savefig(f'{model_type}_label{label + 1}_all_models_sample_{sample}_activity.png', dpi=200)
             main_fig.clf()
+            plt.close(main_fig)
 
 
 # Load either last or best
