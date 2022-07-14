@@ -124,6 +124,7 @@ def load_eeg_from_gdf(low_pass, high_pass, input_file, base_save_file, frequency
 
 	eeg_raw = np.asarray(single_trials)
 	eeg_raw = np.swapaxes(eeg_raw, 1, 2)
+	# ADD NOISE HERE
 	eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
 	car_eeg = get_CAR_eeg(eeg_filtered)
 	car_eeg = np.nan_to_num(car_eeg, neginf=0, posinf=0)

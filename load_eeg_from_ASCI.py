@@ -40,6 +40,7 @@ def load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency, trial
 def get_filtered_eeg(raw_file_path, trigger_file_path, low_pass, high_pass, frequency, trial_duration):
 	eeg_raw = load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency, trial_duration)
 	eeg_raw = np.swapaxes(eeg_raw, 1, 2)
+	# INSERT RANDOM NOISE
 	eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
 	return eeg_filtered
 
