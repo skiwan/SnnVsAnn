@@ -111,7 +111,7 @@ files = [
 	
 ]"""
 
-def load_eeg_from_gdf(low_pass, high_pass, input_file, base_save_file, frequency=250, trial_duration=6):
+def load_eeg_from_gdf(low_pass, high_pass, input_file, base_save_file, frequency=250, trial_duration=6, noise_fn = None, noise_fn_params = {}):
 	save_path = f'{base_save_file}_{low_pass}_{high_pass}.npy'
 	raw_gdf = mne.io.read_raw_gdf(input_file)
 	gdf_df = raw_gdf.to_data_frame()
@@ -124,6 +124,8 @@ def load_eeg_from_gdf(low_pass, high_pass, input_file, base_save_file, frequency
 
 	eeg_raw = np.asarray(single_trials)
 	eeg_raw = np.swapaxes(eeg_raw, 1, 2)
+	if noise_fn and noise_fn_params:
+		eeg_raw = noise_fn(eeg_raw, **noise_fn_params)
 	# ADD NOISE HERE
 	eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
 	car_eeg = get_CAR_eeg(eeg_filtered)

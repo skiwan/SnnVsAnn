@@ -37,10 +37,11 @@ def load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency, trial
 	return np.asarray(single_trials)
 
 
-def get_filtered_eeg(raw_file_path, trigger_file_path, low_pass, high_pass, frequency, trial_duration):
+def get_filtered_eeg(raw_file_path, trigger_file_path, low_pass, high_pass, frequency, trial_duration, noise_fn, noise_fn_params):
 	eeg_raw = load_asci_eeg_to_np_array(raw_file_path, trigger_file_path, frequency, trial_duration)
 	eeg_raw = np.swapaxes(eeg_raw, 1, 2)
-	# INSERT RANDOM NOISE
+	if noise_fn and noise_fn_params:
+		eeg_raw = noise_fn(eeg_raw, **noise_fn_params)
 	eeg_filtered = butter_bandpass_filter(eeg_raw, low_pass, high_pass, frequency)
 	return eeg_filtered
 
@@ -118,9 +119,9 @@ configs = [
 	,[25,30]
 ]"""
 
-def load_eeg_from_asci(raw_input_file, trigger_input_file, save_file, low_pass, high_pass, frequency=250, trial_duration=7):
+def load_eeg_from_asci(raw_input_file, trigger_input_file, save_file, low_pass, high_pass, frequency=250, trial_duration=7, noise_fn=None, noise_fn_params={}):
 	save_path = f'{save_file}_{low_pass}_{high_pass}.npy'
-	eeg_filtered = get_filtered_eeg(raw_input_file, trigger_input_file, low_pass, high_pass, frequency, trial_duration)
+	eeg_filtered = get_filtered_eeg(raw_input_file, trigger_input_file, low_pass, high_pass, frequency, trial_duration, noise_fn, noise_fn_params)
 	car_eeg = get_CAR_eeg(eeg_filtered)
 	car_eeg = np.nan_to_num(car_eeg, neginf=0, posinf=0)
 	for trial in range(car_eeg.shape[0]):

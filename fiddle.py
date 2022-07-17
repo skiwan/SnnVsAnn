@@ -9,6 +9,7 @@ from Models.data_splitter import DataSplitter
 from Scripts.multi_class_snn_run import main as multiclass_run
 from Scripts.multi_class_snn_run import main_return_data as multiclass_run_data
 import numpy as np
+from apply_white_noise import apply_white_noise
 
 file_directory = os.path.dirname(os.path.abspath(__file__))
 file_directory = os.path.join(file_directory, 'Scripts/')
@@ -50,9 +51,14 @@ model_classes = 2
 model_learning_rate = 0.01
 model_weight_decay = 0.0
 
-load_eeg_from_gdf(low_pass, high_pass, raw_train_file_name, f'{base_save_path}raw_train', frequency=250, trial_duration=6)
+n_fn = apply_white_noise
+n_fn_params = {"noise_strength_percent" : 0.3}
+
+t_epochs = 2
+
+load_eeg_from_gdf(low_pass, high_pass, raw_train_file_name, f'{base_save_path}raw_train', frequency=250, trial_duration=6, noise_fn=n_fn, noise_fn_params=n_fn_params)
 load_eeg_from_gdf(low_pass, high_pass, raw_eval_file_name, f'{base_save_path}raw_eval', frequency=250,
-                      trial_duration=6)
+                      trial_duration=6, noise_fn=n_fn, noise_fn_params=n_fn_params)
 
 # move and prepare labels into temp folder
 shutil.copyfile(f'{base_label_path}{eval_label_file_name}', f'{base_save_path}raw_eval_labels.npy')
@@ -93,7 +99,7 @@ for i in range(1,5):
     model_name = f'{base_save_path}{experiment_name}_class{i}_model'
 
     statistics, e_loss, eval_acc, eval_kappa, best_val_epoch = run_binary_classification(
-        batch_size, shuffle, workers, 300,
+        batch_size, shuffle, workers, t_epochs,
         f'{base_save_path}_class{i}_train_data.npy', f'{base_save_path}_class{i}_train_labels.npy',
         f'{base_save_path}_class{i}_validate_data.npy', f'{base_save_path}_class{i}_validate_labels.npy',
         f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}normalized_eval_class{i}_labels.npy',
