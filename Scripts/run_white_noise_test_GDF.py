@@ -6,6 +6,9 @@ from normalize_feature_extraction import apply_normlized_feature_extraction
 from apply_CWT import apply_cwt
 from Models.data_splitter import DataSplitter
 from noise_configs import white_noise_values
+from apply_white_noise import apply_white_noise
+
+
 
 from training_helper_gdf import train_model_ann, train_model_snn, eval_ann_model, eval_snn_model
 
@@ -118,13 +121,76 @@ for data_set_name, model_c in gdf_models.items():
     # Train SNN on normal data
     train_model_snn(snn_config)
 
-    print("HEHE")
-    quit()
+    ann_eval_config = ann_config
+    ann_eval_config["data_cut_front"] = model_c["ANN"]["cut_off"][0]
+    ann_eval_config["data_cut_back"] = model_c["ANN"]["cut_off"][1]
 
+    snn_eval_config = snn_config
 
+    for noise_c in white_noise_values:
         # Generate noisey Data
-        # Evaluate and save data
+        load_eeg_from_gdf(low_pass, high_pass, raw_train_file_name, f'{base_save_path}raw_train', frequency=250,
+                          trial_duration=6, noise_fn=apply_white_noise, noise_fn_params=noise_c)
+        load_eeg_from_gdf(low_pass, high_pass, raw_eval_file_name, f'{base_save_path}raw_eval', frequency=250,
+                          trial_duration=6, noise_fn=apply_white_noise, noise_fn_params=noise_c)
+
+        # move and prepare labels into temp folder
+        shutil.copyfile(f'{base_label_path}{eval_label_file_name}', f'{base_save_path}raw_eval_labels.npy')
+
+        # apply CPS in temp folder
+        apply_csp(f'{base_save_path}raw_train_{low_pass}_{high_pass}.npy', f'{base_save_path}raw_train_labels.npy',
+                  f'{base_save_path}raw_eval_{low_pass}_{high_pass}.npy', f'{base_save_path}raw_eval_labels.npy',
+                  f'{base_save_path}csp_train', f'{base_save_path}csp_eval',
+                  low_pass, high_pass)
+
+        for i in range(1, 5):
+            # apply normalize without extraction in temp folder
+            apply_normlized_feature_extraction(f'{base_save_path}csp_train_class{i}.npy',
+                                               f'{base_save_path}raw_train_labels.npy',
+                                               f'{base_save_path}normalized_train',
+                                               f'{base_save_path}csp_eval_class{i}.npy',
+                                               f'{base_save_path}raw_eval_labels.npy',
+                                               f'{base_save_path}normalized_eval',
+                                               i, extract=extract_features)
+
+            # apply CWT
+            apply_cwt(f'{base_save_path}normalized_train_class{i}.npy', f'{base_save_path}cwt_train_class{i}.npy',
+                      scale_1[0], scale_1[1], scale_1[2], scale_2[0], scale_2[1], scale_2[2])
+            apply_cwt(f'{base_save_path}normalized_eval_class{i}.npy', f'{base_save_path}cwt_eval_class{i}.npy',
+                      scale_1[0], scale_1[1], scale_1[2], scale_2[0], scale_2[1], scale_2[2])
+
+            # Prepare Train and Val sets SNN
+            data_splitter = DataSplitter(f'{base_save_path}normalized_train_class{i}.npy',
+                                         f'{base_save_path}normalized_train_class{i}_labels.npy',
+                                         f'{base_save_path}snn_class{i}',
+                                         split_ratio)
+            data_splitter.split(splitting_strategy)
+
+            # Prepare Train and Val sets ANN
+            data_splitter = DataSplitter(f'{base_save_path}cwt_train_class{i}.npy',
+                                         f'{base_save_path}normalized_train_class{i}_labels.npy',
+                                         f'{base_save_path}ann_class{i}',
+                                         split_ratio)
+            data_splitter.split(splitting_strategy)
+            # Evaluate and save data
+
+
+
+        best_acc, best_kappa, last_acc, last_kappa = eval_ann_model(
+            *ann_eval_config
+        )
+
+
+
+        best_acc, best_kappa, last_acc, last_kappa = eval_snn_model(
+            *snn_eval_config
+        )
+
+
 
     # Save all stats
     # Generate Graph for ANN and noise to eval
     # Generate Graph for SNN and noise to eval
+
+        print("HEHE")
+        quit()
