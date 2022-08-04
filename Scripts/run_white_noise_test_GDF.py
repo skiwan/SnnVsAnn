@@ -7,6 +7,9 @@ from apply_CWT import apply_cwt
 from Models.data_splitter import DataSplitter
 from noise_configs import white_noise_values
 from apply_white_noise import apply_white_noise
+from Utils import create_folder_if_not_exists
+import json
+
 
 
 
@@ -108,7 +111,8 @@ for data_set_name, model_c in gdf_models.items():
     ann_config.update(base_model_config)
     ann_config.update(model_c["ANN"])
     # Train ANN on normal data
-    train_model_ann(ann_config)
+    ann_pre = train_model_ann(ann_config)
+
 
 
     snn_config = {
@@ -119,13 +123,25 @@ for data_set_name, model_c in gdf_models.items():
     snn_config.update(base_model_config)
     snn_config.update(model_c["SNN"])
     # Train SNN on normal data
-    train_model_snn(snn_config)
+    snn_pre = train_model_snn(snn_config)
 
-    ann_eval_config = ann_config
-    ann_eval_config["data_cut_front"] = model_c["ANN"]["cut_off"][0]
-    ann_eval_config["data_cut_back"] = model_c["ANN"]["cut_off"][1]
+    print(f"Best ACC after normal Training ann: {ann_pre}")
+    print(f"Best ACC after normal Training snn: {snn_pre}")
 
-    snn_eval_config = snn_config
+    destination_path = os.path.join(file_directory, 'Experiments')
+    destination_path = os.path.join(
+        destination_path, f"{data_set_name}_whitenoise_test"
+    )
+    create_folder_if_not_exists(destination_path)
+    destination_path = f'{destination_path}/'
+
+    ann_eval_config = {'base_save_path': ann_config['base_save_path'], 'experiment_name': ann_config['experiment_name'],
+                       'model_channels': ann_config['model_channels'], 'model_classes': ann_config['model_classes'],
+                       'model_dropout': ann_config['dropout'], "data_cut_front": model_c["ANN"]["cut_off"][0],
+                       "data_cut_back": model_c["ANN"]["cut_off"][1]}
+
+    snn_eval_config = {'base_save_path': snn_config['base_save_path'], 'experiment_name': snn_config['experiment_name'],
+                       'model_channels': snn_config['model_channels'], 'model_classes': snn_config['model_classes']}
 
     for noise_c in white_noise_values:
         # Generate noisey Data
@@ -177,20 +193,50 @@ for data_set_name, model_c in gdf_models.items():
 
 
         best_acc, best_kappa, last_acc, last_kappa = eval_ann_model(
-            *ann_eval_config
+            **ann_eval_config
         )
 
+        white_noise_strength = noise_c["noise_strength_percent"]
 
+        ann_test_results = {
+            "ModelType": "ANN",
+            "Best_ACC": best_acc,
+            "Best_Kappa": best_kappa,
+            "Last_ACC": last_acc,
+            "Last_Kappa": last_kappa,
+            "noise_type": "white_noise",
+            "noise_params": noise_c,
+            "dataset": data_set_name,
+        }
+        with open(f'{destination_path}ann_white_noise_{white_noise_strength}_test_description.json', 'w') as exp_file:
+            json.dump(ann_test_results, exp_file)
 
         best_acc, best_kappa, last_acc, last_kappa = eval_snn_model(
-            *snn_eval_config
+            **snn_eval_config
         )
 
+        snn_test_results = {
+            "ModelType": "SNN",
+            "Best_ACC": best_acc,
+            "Best_Kappa": best_kappa,
+            "Last_ACC": last_acc,
+            "Last_Kappa": last_kappa,
+            "noise_type": "white_noise",
+            "noise_params": noise_c,
+            "dataset": data_set_name,
+        }
+        with open(f'{destination_path}snn_white_noise_{white_noise_strength}_test_description.json', 'w') as exp_file:
+            json.dump(snn_test_results, exp_file)
+
+        # Advanced save path is Experiments Dataset_test_whitenoise/noise_c_models.json
+        # Save each run single and also collect to save in one file at the end per dataset
 
 
     # Save all stats
     # Generate Graph for ANN and noise to eval
     # Generate Graph for SNN and noise to eval
 
-        print("HEHE")
-        quit()
+    print("HEHE")
+    quit()
+
+# when done with all models, create one file with all values.json from all experiments gdf
