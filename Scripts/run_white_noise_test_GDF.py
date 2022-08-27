@@ -9,6 +9,7 @@ from noise_configs import white_noise_values
 from apply_white_noise import apply_white_noise
 from Utils import create_folder_if_not_exists
 import json
+import time
 
 
 
@@ -26,6 +27,7 @@ base_save_path = os.path.join(file_directory, 'temp/')
 create_temp_folder(file_directory)
 
 for data_set_name, model_c in gdf_models.items():
+    start = time.time()
 
     train_file_name = f'{data_set_name}T.gdf'
     eval_file_name = f'{data_set_name}E.gdf'
@@ -230,13 +232,13 @@ for data_set_name, model_c in gdf_models.items():
 
         # Advanced save path is Experiments Dataset_test_whitenoise/noise_c_models.json
         # Save each run single and also collect to save in one file at the end per dataset
+    end = time.time()
+    print(f"Last run took {end-start}")
 
 
     # Save all stats
     # Generate Graph for ANN and noise to eval
     # Generate Graph for SNN and noise to eval
 
-    print("HEHE")
-    quit()
 
 # when done with all models, create one file with all values.json from all experiments gdf

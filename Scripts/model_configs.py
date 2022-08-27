@@ -9,7 +9,7 @@ base_model_config = {
     "batch_size" : 32,
     "shuffle" : True,
     "workers" : 1,
-    "max_epochs" : 1,
+    "max_epochs" : 300,
     "model_channels" : 8,
     "model_classes" : 2,
 }
@@ -19,13 +19,34 @@ gdf_models = {
         "SNN" : {"learning_rate": 0.01, "weight_decay": 0.0},
         "ANN" : {"learning_rate": 0.001, "weight_decay": 0.1, "cut_off": [50,250], "dropout": 0.3},
     },
-    "A02" : {},
-    "A03" : {},
-    "A05" : {},
-    "A06" : {},
-    "A07" : {},
-    "A08" : {},
-    "A09" : {},
+    "A02" : {
+        "SNN" : {"learning_rate": 0.005, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.001, "weight_decay": 0.05, "cut_off": [100,300], "dropout": 0.1},
+    },
+    "A03" : {
+        "SNN" : {"learning_rate": 0.01, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.0001, "weight_decay": 0.5, "cut_off": [100,300], "dropout": 0.1},
+    },
+    "A05" : {
+        "SNN" : {"learning_rate": 0.01, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.001, "weight_decay": 0.5, "cut_off": [75,275], "dropout": 0.1},
+    },
+    "A06" : {
+        "SNN" : {"learning_rate": 0.01, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.005, "weight_decay": 0.1, "cut_off": [50,250], "dropout": 0.1},
+    },
+    "A07" : {
+        "SNN" : {"learning_rate": 0.005, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.0005, "weight_decay": 0.5, "cut_off": [25,225], "dropout": 0.1},
+    },
+    "A08" : {
+        "SNN" : {"learning_rate": 0.01, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.0001, "weight_decay": 0.5, "cut_off": [100,300], "dropout": 0.3},
+    },
+    "A09" : {
+        "SNN" : {"learning_rate": 0.005, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.001, "weight_decay": 0.1, "cut_off": [25,225], "dropout": 0.1},
+    },
 }
 
 
