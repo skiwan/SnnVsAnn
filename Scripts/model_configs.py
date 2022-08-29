@@ -50,4 +50,17 @@ gdf_models = {
 }
 
 
-asci_models = {}
+asci_models = {
+    "k3b_1" : {
+        "SNN" : {"learning_rate": 0.01, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.0005, "weight_decay": 0.5, "cut_off": [100,300], "dropout": 0.5},
+    },
+    "k6b_2" : {
+        "SNN" : {"learning_rate": 0.01, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.001, "weight_decay": 0.5, "cut_off": [75,275], "dropout": 0.3},
+    },
+    "l1b_3" : {
+        "SNN" : {"learning_rate": 0.001, "weight_decay": 0.0},
+        "ANN" : {"learning_rate": 0.001, "weight_decay": 0.5, "cut_off": [100,300], "dropout": 0.3},
+    },
+}
