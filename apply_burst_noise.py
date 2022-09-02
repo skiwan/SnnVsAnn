@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-
+from copy import deepcopy
 def apply_burst_noise(raw_data, noise_strength_percent, burst_amounts, burst_length):
 	new_data = []
 	channels = raw_data.shape[1] #?
@@ -8,7 +8,7 @@ def apply_burst_noise(raw_data, noise_strength_percent, burst_amounts, burst_len
 	for sample in raw_data:
 		new_sample = []
 		for c in range(channels):
-			c_data = sample[c]
+			c_data = deepcopy(sample[c])
 			max_abs = max([abs(max(c_data)),abs(min(c_data))])
 			max_abs = max_abs * noise_strength_percent
 			noise = np.ones(burst_length) * max_abs
