@@ -185,7 +185,7 @@ for data_set_name, model_c in asci_models.items():
     for noise_c in gaussian_noise_values:
         # Generate noisey Data
         load_eeg_from_asci(train_file_name, trigger_file, f'{base_save_path}raw', low_pass, high_pass,
-                           noise_fn=apply_guassian_noise(), noise_fn_params=noise_c)
+                           noise_fn=apply_guassian_noise, noise_fn_params=noise_c)
 
         # move and prepare labels into temp folder
         shutil.copyfile(f'{true_label_file}', f'{base_save_path}true_labels.npy')
