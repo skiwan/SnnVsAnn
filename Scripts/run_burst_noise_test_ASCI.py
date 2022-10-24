@@ -5,8 +5,8 @@ from apply_CSP import apply_csp
 from normalize_feature_extraction import apply_normlized_feature_extraction
 from apply_CWT import apply_cwt
 from Models.data_splitter import DataSplitter
-from noise_configs import transient_noise_values
-from apply_transient_noise import apply_transient_noise
+from noise_configs import burst_noise_values
+from apply_burst_noise import apply_burst_noise
 from Utils import create_folder_if_not_exists
 import json
 import time
@@ -128,21 +128,21 @@ for data_set_name, model_c in asci_models.items():
                                      split_ratio)
         data_splitter.split(splitting_strategy)
 
-    experiment_description = f"Transient Noise Test Data Set: {data_set_name} base Truth"
+    experiment_description = f"Burst Noise Test Data Set: {data_set_name} base Truth"
 
     experiment_config_base = {
         "base_save_path": base_save_path,
         "file_directory": file_directory,
         "train_file_name": train_file_name,
         "eval_file_name": train_file_name,
-        "experiment_file_name": f"{data_set_name}_basetrain_transientnoise",
+        "experiment_file_name": f"{data_set_name}_basetrain_burstnoise",
         "device": "cpu",
     }
 
     # Prepare SNN config
     ann_config = {
         "experiment_description": f"{experiment_description} ANN",
-        "experiment_name": f"{data_set_name}_basetrain_transientnoise_ann",
+        "experiment_name": f"{data_set_name}_basetrain_burstnoise_ann",
     }
     ann_config.update(experiment_config_base)
     ann_config.update(base_model_config)
@@ -154,7 +154,7 @@ for data_set_name, model_c in asci_models.items():
 
     snn_config = {
         "experiment_description": f"{experiment_description} SNN",
-        "experiment_name": f"{data_set_name}_basetrain_transientnoise_snn",
+        "experiment_name": f"{data_set_name}_basetrain_burstnoise_snn",
     }
     snn_config.update(experiment_config_base)
     snn_config.update(base_model_config)
@@ -167,7 +167,7 @@ for data_set_name, model_c in asci_models.items():
 
     destination_path = os.path.join(file_directory, 'Experiments')
     destination_path = os.path.join(
-        destination_path, f"{data_set_name}_transientnoise_test"
+        destination_path, f"{data_set_name}_burstnoise_test"
     )
     create_folder_if_not_exists(destination_path)
     destination_path = f'{destination_path}/'
@@ -180,9 +180,9 @@ for data_set_name, model_c in asci_models.items():
     snn_eval_config = {'base_save_path': snn_config['base_save_path'], 'experiment_name': snn_config['experiment_name'],
                        'model_channels': snn_config['model_channels'], 'model_classes': snn_config['model_classes']}
 
-    for noise_c in transient_noise_values:
+    for noise_c in burst_noise_values:
         # Generate noisey Data
-        load_eeg_from_asci(train_file_name, trigger_file, f'{base_save_path}raw', low_pass, high_pass, noise_fn=apply_transient_noise, noise_fn_params=noise_c)
+        load_eeg_from_asci(train_file_name, trigger_file, f'{base_save_path}raw', low_pass, high_pass, noise_fn=apply_burst_noise, noise_fn_params=noise_c)
 
         # move and prepare labels into temp folder
         shutil.copyfile(f'{true_label_file}', f'{base_save_path}true_labels.npy')
@@ -242,8 +242,8 @@ for data_set_name, model_c in asci_models.items():
             **ann_eval_config
         )
 
-        transient_noise_strength = noise_c["noise_strength_percent"]
-        transient_burst_amounts = noise_c["burst_amounts"]
+        burst_noise_strength = noise_c["noise_strength_percent"]
+        burst_burst_amounts = noise_c["burst_amounts"]
 
         ann_test_results = {
             "ModelType": "ANN",
@@ -251,11 +251,11 @@ for data_set_name, model_c in asci_models.items():
             "Best_Kappa": best_kappa,
             "Last_ACC": last_acc,
             "Last_Kappa": last_kappa,
-            "noise_type": "transient_noise",
+            "noise_type": "burst_noise",
             "noise_params": noise_c,
             "dataset": data_set_name,
         }
-        with open(f'{destination_path}ann_transient_noise_{transient_noise_strength}_{transient_burst_amounts}_test_description.json', 'w') as exp_file:
+        with open(f'{destination_path}ann_burst_noise_{burst_noise_strength}_{burst_burst_amounts}_test_description.json', 'w') as exp_file:
             json.dump(ann_test_results, exp_file)
 
         best_acc, best_kappa, last_acc, last_kappa = eval_snn_model(
@@ -268,11 +268,11 @@ for data_set_name, model_c in asci_models.items():
             "Best_Kappa": best_kappa,
             "Last_ACC": last_acc,
             "Last_Kappa": last_kappa,
-            "noise_type": "transient_noise",
+            "noise_type": "burst_noise",
             "noise_params": noise_c,
             "dataset": data_set_name,
         }
-        with open(f'{destination_path}snn_transient_noise_{transient_noise_strength}_{transient_burst_amounts}_test_description.json', 'w') as exp_file:
+        with open(f'{destination_path}snn_burst_noise_{burst_noise_strength}_{burst_burst_amounts}_test_description.json', 'w') as exp_file:
             json.dump(snn_test_results, exp_file)
 
         # Advanced save path is Experiments Dataset_test_whitenoise/noise_c_models.json
